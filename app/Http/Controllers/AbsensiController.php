@@ -30,9 +30,10 @@ class AbsensiController extends Controller
         $request->validate([
             'latitude' => 'required',
             'longitude' => 'required'
-        ],);
+        ], );
 
-        $user = Auth::user(); // ambil akun login
+
+        $user = Auth::user(); // ambil user login
         if ($user->role !== 'siswa') {
             // return response()->json(['error' => 'Hanya siswa yang bisa absen'], 403);
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);

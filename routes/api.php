@@ -1,35 +1,31 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AbsensiController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
-
-
-
-use App\Http\Controllers\AbsensiController;
-use App\Http\Controllers\AuthController;
-
+// Auth
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
+Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
 
-// hanya siswa
+// Hanya siswa
 Route::middleware(['auth:api', 'role:siswa'])->group(function () {
     Route::post('/absensi', [AbsensiController::class, 'absen']);
     Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat']);
 });
 
-// hanya admin
+// Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/admin/rekap', function () {
-        return "Rekap Absensi untuk Admin";
+        return response()->json(['message' => 'Rekap Absensi untuk Admin']);
     });
 });
 
-// hanya guru piket dan walas
+// Hanya guru piket & wali kelas
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', function () {
-        return "Laporan Guru Piket & Wali Kelas";
+        return response()->json(['message' => 'Laporan Guru Piket & Wali Kelas']);
     });
 });

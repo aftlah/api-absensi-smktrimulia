@@ -8,10 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Login dengan JWT
-     */
-    public function login(Request $request)
+    public function Login(Request $request)
     {
         $credentials = $request->only('username', 'password');
 
