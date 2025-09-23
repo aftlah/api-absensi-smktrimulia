@@ -13,7 +13,6 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!$token = Auth::attempt($credentials)) {
-            // return response()->json(['error' => 'Username atau password salah'], 401);
             return ApiResponse::error('Username atau password salah', null, 401);
         }
 
@@ -22,7 +21,7 @@ class AuthController extends Controller
             'responseMessage' => 'Login berhasil',
             'responseHeader' => [
                 'access_token' => $token,
-                'token_type' => 'bearer',
+                'token_type' => 'Bearer',
                 'expires_in' => Auth::factory()->getTTL() * 60
             ],
             'responseData' => [
@@ -67,7 +66,7 @@ class AuthController extends Controller
     {
         return ApiResponse::success([
             'access_token' => Auth::refresh(),
-            'token_type' => 'bearer',
+            'token_type' => 'Bearer',
             'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
         ]);
