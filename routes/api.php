@@ -13,6 +13,7 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
 // Hanya siswa
 Route::middleware(['auth:api', 'role:siswa'])->group(function () {
     Route::post('/absensi', [AbsensiController::class, 'absen']);
+    Route::post('/absensi/pulang', [AbsensiController::class, 'absenPulang']);
     Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat']);
 });
 
