@@ -16,7 +16,6 @@ class Akun extends Authenticatable implements JWTSubject
 
     protected $hidden = ['password'];
 
-    // 🔹 JWT interface
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -27,7 +26,6 @@ class Akun extends Authenticatable implements JWTSubject
         return [];
     }
 
-    // 🔹 Relasi
     public function siswa()
     {
         return $this->hasOne(Siswa::class, 'akun_id', 'akun_id');
