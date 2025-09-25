@@ -33,6 +33,7 @@ class AbsensiController extends Controller
             'longitude' => 'required'
         ]);
 
+
         $user = Auth::user(); // ambil user login
         if ($user->role !== 'siswa') {
             // return response()->json(['error' => 'Hanya siswa yang bisa absen'], 403);
