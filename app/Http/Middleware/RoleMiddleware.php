@@ -21,7 +21,10 @@ class RoleMiddleware
 
         if (!$user || !in_array($user->role, $roles)) {
             // return response()->json(['error' => 'Unauthorized, role tidak sesuai'], 403);
-            return ApiResponse::error('Unauthorized, role tidak sesuai', null, 403);
+            return response()->json([
+                'responseStatus' => false,
+                'responseMessage' => 'Unauthorized, role tidak sesuai',
+            ], 403);
         }
 
         return $next($request);

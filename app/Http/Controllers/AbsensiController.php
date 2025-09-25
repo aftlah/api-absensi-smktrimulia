@@ -31,8 +31,7 @@ class AbsensiController extends Controller
         $request->validate([
             'latitude' => 'required',
             'longitude' => 'required'
-        ], );
-
+        ]);
 
         $user = Auth::user(); // ambil user login
         if ($user->role !== 'siswa') {

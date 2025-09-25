@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GuruController;
 use Illuminate\Support\Facades\Route;
 
 // Auth
@@ -19,14 +21,10 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
 
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
-    Route::get('/admin/rekap', function () {
-        return response()->json(['message' => 'Rekap Absensi untuk Admin']);
-    });
+    Route::get('/admin/rekap', [AdminController::class, 'rekap']);
 });
 
 // Hanya guru piket & wali kelas
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
-    Route::get('/guru/laporan', function () {
-        return response()->json(['message' => 'Laporan Guru Piket & Wali Kelas']);
-    });
+    Route::get('/guru/laporan', [GuruController::class, 'laporan']);
 });
