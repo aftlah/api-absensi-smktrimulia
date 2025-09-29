@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AbsensiController extends Controller
 {
-    // haversine formula        
+    // haversine formula
     private function hitungJarak($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000;
@@ -104,6 +104,38 @@ class AbsensiController extends Controller
         ]);
 
         return ApiResponse::success($absensiHariIni, 'Absensi pulang berhasil');
+    }
+
+    public function izinSakit(Request $request)
+    {
+        $request->validate([
+            'tanggal' => 'required|date',
+            'keterangan' => 'nullable|string'
+        ]);
+
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            return ApiResponse::error('Hanya siswa yang bisa mengajukan izin sakit', null, 403);
+        }
+
+        // Cek apakah sudah ada absensi pada tanggal tersebut
+        $existingAbsensi = Absensi::where('siswa_id', $user->siswa->siswa_id)
+            ->where('tanggal', $request->tanggal)
+            ->first();
+
+        if ($existingAbsensi) {
+            return ApiResponse::error('Anda sudah memiliki catatan absensi pada tanggal tersebut', null, 422);
+        }
+
+        // Buat catatan absensi dengan status 'sakit'
+        $absensi = Absensi::create([
+            'siswa_id' => $user->siswa->siswa_id,
+            'tanggal' => $request->tanggal,
+            'status' => 'sakit',
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return ApiResponse::success($absensi, 'Izin sakit berhasil diajukan');
     }
 
     // lihat riwayat absensi siswa
