@@ -3,8 +3,10 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruController;
 use Illuminate\Support\Facades\Route;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 // Auth
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,6 +26,15 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/admin/rekap', [AdminController::class, 'rekap']);
+});
+
+// Admin, gurket & wali kelas
+Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
+    Route::get('/total-siswa', [DashboardController::class, 'totalSiswa']);
+    Route::get('/hadir-hariini', [DashboardController::class, 'hadirHariIni']);
+    Route::get('/terlambat-hariini', [DashboardController::class, 'terlambatHariIni']);
+    Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
+    Route::get('/guru/rekap', [GuruController::class, 'rekap']);
 });
 
 // Hanya guru piket & wali kelas
