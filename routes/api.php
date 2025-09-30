@@ -16,8 +16,8 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
 Route::middleware(['auth:api', 'role:siswa'])->group(function () {
     Route::post('/absensi', [AbsensiController::class, 'absen']);
     Route::post('/absensi/pulang', [AbsensiController::class, 'absenPulang']);
+    Route::post('/absensi/izinsakit', [AbsensiController::class, 'izinSakit']);
     Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat']);
-    Route::post('/absensi/izin-sakit', [AbsensiController::class, 'izinSakit']);
 });
 
 // Hanya admin

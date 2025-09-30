@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\Pengaturan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class AbsensiController extends Controller
 {
@@ -109,8 +111,17 @@ class AbsensiController extends Controller
     public function izinSakit(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required|date',
-            'keterangan' => 'nullable|string'
+            'tanggal' => 'required|date', // contoh format: '2024-06-10'
+            'keterangan' => 'required|string',
+            'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'tanggal.required' => 'Tanggal izin sakit harus diisi',
+            'tanggal.date' => 'Format tanggal tidak valid, gunakan YYYY-MM-DD',
+            'keterangan.required' => 'Keterangan harus diisi',
+            'bukti.required' => 'Bukti harus diunggah',
+            'bukti.file' => 'Bukti harus berupa file',
+            'bukti.mimes' => 'Bukti harus berupa file dengan format: jpg, jpeg, png, pdf',
+            'bukti.max' => 'Ukuran file bukti maksimal 2MB',
         ]);
 
         $user = Auth::user();
@@ -118,7 +129,6 @@ class AbsensiController extends Controller
             return ApiResponse::error('Hanya siswa yang bisa mengajukan izin sakit', null, 403);
         }
 
-        // Cek apakah sudah ada absensi pada tanggal tersebut
         $existingAbsensi = Absensi::where('siswa_id', $user->siswa->siswa_id)
             ->where('tanggal', $request->tanggal)
             ->first();
@@ -127,12 +137,14 @@ class AbsensiController extends Controller
             return ApiResponse::error('Anda sudah memiliki catatan absensi pada tanggal tersebut', null, 422);
         }
 
-        // Buat catatan absensi dengan status 'sakit'
+        $path = $request->file('bukti')->store('izin_sakit', 'public');
+
         $absensi = Absensi::create([
             'siswa_id' => $user->siswa->siswa_id,
             'tanggal' => $request->tanggal,
             'status' => 'sakit',
             'keterangan' => $request->keterangan,
+            'bukti' => $path, // simpan path file ke database
         ]);
 
         return ApiResponse::success($absensi, 'Izin sakit berhasil diajukan');
