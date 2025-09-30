@@ -159,4 +159,19 @@ class AbsensiController extends Controller
         // return response()->json($riwayat);
         return ApiResponse::success($riwayat);
     }
+
+    public function hariIni()
+    {
+        $user = Auth::user();
+        $riwayat = Absensi::where('siswa_id', $user->siswa->siswa_id)
+            ->where('tanggal', now()->toDateString())
+            ->first();
+
+        if ($riwayat && $riwayat->bukti) {
+            $riwayat->bukti = asset('storage/' . $riwayat->bukti);
+        }
+
+        return ApiResponse::success($riwayat);
+    }
+
 }
