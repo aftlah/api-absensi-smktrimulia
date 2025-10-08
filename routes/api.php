@@ -40,4 +40,5 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
 // Hanya guru piket & wali kelas
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GuruController::class, 'laporan']);
+    Route::post('/import-siswa', [GuruController::class, 'importSiswa']);
 });

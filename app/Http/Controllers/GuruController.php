@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ImportHelper;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
@@ -41,4 +42,29 @@ class GuruController extends Controller
             'laporan' => $laporan
         ]);
     }
+
+    public function importSiswa(Request $request)
+    {
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+
+        try {
+            $importer = new ImportHelper();
+            $sheets = $importer->importSiswa($request->file('file'));
+
+            return response()->json([
+                'message' => 'Data siswa berhasil diimpor',
+                'kelas_terimpor' => $sheets,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal mengimpor data siswa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }
