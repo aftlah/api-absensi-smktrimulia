@@ -46,19 +46,17 @@ class GuruController extends Controller
 
     public function importSiswa(Request $request)
     {
-
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
-
         try {
             $importer = new ImportHelper();
-            $sheets = $importer->importSiswa($request->file('file'));
+            $kelasTerimpor = $importer->importSiswa($request->file('file'));
 
             return response()->json([
                 'message' => 'Data siswa berhasil diimpor',
-                'kelas_terimpor' => $sheets,
+                'kelas_terimpor' => $kelasTerimpor,
             ]);
         } catch (\Exception $e) {
             return response()->json([
