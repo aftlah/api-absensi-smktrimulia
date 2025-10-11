@@ -20,7 +20,7 @@ class ImportHelper
         $sheetNames = $spreadsheet->getSheetNames();
         $kelasMap = [];
 
-        // 🔹 Deteksi kelas untuk setiap sheet
+        // Deteksi kelas untuk setiap sheet
         foreach ($sheetNames as $sheetName) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
             $kelasCell = trim((string) $sheet->getCell('C7')->getValue());
@@ -48,22 +48,22 @@ class ImportHelper
             $kelasMap[$sheetName] = $kelasModel->kelas_id;
         }
 
-        // 🔹 Jalankan import multi-sheet dan dapatkan hasil siswa yang disimpan
+        // import multi-sheet dan return siswa yang disimpan
         $importer = new SiswaMultiSheetImport($sheetNames, $kelasMap);
         Excel::import($importer, $file);
 
-        // 🔹 Return hasil lengkap
+
         return [
             'status' => 'success',
             'message' => 'Import siswa berhasil',
             'kelas_terdaftar' => $kelasMap,
-            'data_siswa' => $importer->getImportedData(), // ✅ tampilkan siswa
+            'data_siswa' => $importer->getImportedData(),
         ];
     }
 }
 
 /**
- * 🔹 Importer untuk semua sheet
+ * Importer untuk semua sheet
  */
 class SiswaMultiSheetImport implements WithMultipleSheets
 {
@@ -106,7 +106,7 @@ class SiswaMultiSheetImport implements WithMultipleSheets
 }
 
 /**
- * 🔹 Importer untuk setiap sheet
+ * Importer untuk setiap sheet
  */
 class SiswaSheetImport implements ToCollection
 {
@@ -143,7 +143,7 @@ class SiswaSheetImport implements ToCollection
             if (!$nomorInduk || !$nama)
                 continue;
 
-            // 🔹 1. Buat akun siswa
+            // Buat akun siswa
             $akun = Akun::firstOrCreate(
                 ['username' => $nomorInduk],
                 [
@@ -152,7 +152,7 @@ class SiswaSheetImport implements ToCollection
                 ]
             );
 
-            // 🔹 2. Buat / update siswa
+            // Buat / update siswa
             $siswa = Siswa::updateOrCreate(
                 ['nis' => $nomorInduk],
                 [
@@ -163,7 +163,7 @@ class SiswaSheetImport implements ToCollection
                 ]
             );
 
-            // 🔹 3. Simpan ke data hasil import
+            // Simpan ke data hasil import
             $this->parent->addImportedData($this->kelas, [
                 'nis' => $siswa->nis,
                 'nama' => $siswa->nama,
