@@ -8,6 +8,7 @@ use App\Models\Absensi;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+
 class GuruController extends Controller
 {
     /**
