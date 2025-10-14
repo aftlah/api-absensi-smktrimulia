@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\AdminController;
@@ -41,4 +42,5 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GuruController::class, 'laporan']);
     Route::post('/import-siswa', [GuruController::class, 'importSiswa']);
+    Route::get('/aktivitas', [AktivitasController::class, 'index']);
 });
