@@ -42,5 +42,5 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GuruController::class, 'laporan']);
     Route::post('/import-siswa', [GuruController::class, 'importSiswa']);
-    Route::get('/aktivitas', [AktivitasController::class, 'index']);
+    Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
 });
