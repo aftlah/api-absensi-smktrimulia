@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('tabel');
             $table->string('aksi');
             $table->string('deskripsi')->nullable();
+            // $table->string('ikon')->nullable();
             $table->string('user')->nullable();
             $table->string('role')->nullable();
             $table->timestamps();

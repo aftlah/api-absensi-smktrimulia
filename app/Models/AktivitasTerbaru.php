@@ -11,7 +11,7 @@ class AktivitasTerbaru extends Model
 
     protected $table = 'aktivitas_terbaru';
     protected $primaryKey = 'aktivitas_id';
-    protected $fillable = ['akun_id', 'aksi', 'deskripsi', 'ikon'];
+    protected $fillable = ['akun_id', 'tabel', 'aksi', 'deskripsi'];
 
     public function akun()
     {

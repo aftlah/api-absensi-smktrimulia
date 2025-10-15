@@ -37,7 +37,7 @@ class GlobalActivityObserver
             'tabel' => $model->getTable(),
             'aksi' => $aksi,
             'deskripsi' => ucfirst($aksi) . " data pada tabel " . $model->getTable(),
-            'ikon' => $this->getIcon($aksi),
+            // 'ikon' => $this->getIcon($aksi),
         ]);
     }
 
