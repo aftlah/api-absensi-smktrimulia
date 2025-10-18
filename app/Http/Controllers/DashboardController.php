@@ -45,7 +45,7 @@ class DashboardController extends Controller
     public function izinSakitHariIni(){
         $totalIzinSakit = Siswa::whereHas('absensi', function ($q) {
             $q->where('tanggal', now()->toDateString())
-                ->whereIn('status', ['izin', 'sakit']);
+                ->whereIn('status', ['pending']);
         })->count();
         return ApiResponse::success([
             'siswa_izin_sakit_hariini' => $totalIzinSakit,

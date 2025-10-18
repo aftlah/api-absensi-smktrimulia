@@ -142,7 +142,7 @@ class AbsensiController extends Controller
         $absensi = Absensi::create([
             'siswa_id' => $user->siswa->siswa_id,
             'tanggal' => $request->tanggal,
-            'status' => 'sakit',
+            'status' => 'pending',
             'keterangan' => $request->keterangan,
             'bukti' => $path, // simpan path file ke database
         ]);

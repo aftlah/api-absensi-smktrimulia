@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->date('tanggal');
             $table->time('jam_datang')->nullable();
             $table->time('jam_pulang')->nullable();
-            $table->enum('status', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa']);
+            $table->enum('status', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa','pending']);
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             $table->string('bukti')->nullable();
