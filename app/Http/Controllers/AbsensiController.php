@@ -8,6 +8,7 @@ use App\Models\Absensi;
 use App\Models\Pengaturan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 
 class AbsensiController extends Controller
@@ -55,6 +56,7 @@ class AbsensiController extends Controller
             'tanggal' => now()->toDateString(),
             'jam_datang' => now()->toTimeString(),
             'status' => 'hadir',
+            'jenis_absen' => $request->jenis_absen,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
         ]);
@@ -110,10 +112,11 @@ class AbsensiController extends Controller
 
     public function izinSakit(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'tanggal' => 'required|date', // contoh format: '2024-06-10'
             'keterangan' => 'required|string',
             'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'jenis_absen' => 'required',
         ], [
             'tanggal.required' => 'Tanggal izin sakit harus diisi',
             'tanggal.date' => 'Format tanggal tidak valid, gunakan YYYY-MM-DD',
@@ -122,7 +125,12 @@ class AbsensiController extends Controller
             'bukti.file' => 'Bukti harus berupa file',
             'bukti.mimes' => 'Bukti harus berupa file dengan format: jpg, jpeg, png, pdf',
             'bukti.max' => 'Ukuran file bukti maksimal 2MB',
+            'jenis_absen.required' => 'Jenis absen harus diisi',
         ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
 
         $user = Auth::user();
         if ($user->role !== 'siswa') {
@@ -132,6 +140,7 @@ class AbsensiController extends Controller
         $existingAbsensi = Absensi::where('siswa_id', $user->siswa->siswa_id)
             ->where('tanggal', $request->tanggal)
             ->first();
+
 
         if ($existingAbsensi) {
             return ApiResponse::error('Anda sudah memiliki catatan absensi pada tanggal tersebut', null, 422);
@@ -143,6 +152,7 @@ class AbsensiController extends Controller
             'siswa_id' => $user->siswa->siswa_id,
             'tanggal' => $request->tanggal,
             'status' => 'pending',
+            'jenis_absen' => $request->jenis_absen,
             'keterangan' => $request->keterangan,
             'bukti' => $path, // simpan path file ke database
         ]);

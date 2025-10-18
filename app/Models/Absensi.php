@@ -19,7 +19,8 @@ class Absensi extends Model
         'status',
         'latitude',
         'longitude',
-        'bukti'
+        'bukti',
+        'jenis_absen'
     ];
 
     public function siswa()

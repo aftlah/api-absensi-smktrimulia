@@ -15,6 +15,7 @@ return new class extends Migration {
 
             $table->unsignedBigInteger('siswa_id');
             $table->foreign('siswa_id')->references('siswa_id')->on('siswa')->onDelete('cascade');
+            $table->enum('jenis_absen', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa'])->nullable();
 
             $table->date('tanggal');
             $table->time('jam_datang')->nullable();
