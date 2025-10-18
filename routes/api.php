@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\GuruController;
+use App\Http\Controllers\GurketController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -27,6 +27,7 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/admin/rekap', [AdminController::class, 'rekap']);
+
 });
 
 // Admin, gurket & wali kelas
@@ -35,12 +36,14 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::get('/hadir-hariini', [DashboardController::class, 'hadirHariIni']);
     Route::get('/terlambat-hariini', [DashboardController::class, 'terlambatHariIni']);
     Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
-    Route::get('/guru/rekap', [GuruController::class, 'rekap']);
+    Route::get('/guru/rekap', [GurketController::class, 'rekap']);
 });
 
 // Hanya guru piket & wali kelas
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
-    Route::get('/guru/laporan', [GuruController::class, 'laporan']);
-    Route::post('/import-siswa', [GuruController::class, 'importSiswa']);
+    Route::get('/guru/laporan', [GurketController::class, 'laporan']);
+    Route::post('/import-siswa', [GurketController::class, 'importSiswa']);
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
+    // Verifikasi/update keterangan absensi siswa oleh guru piket/walas
+    Route::get('/absensi/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
 });
