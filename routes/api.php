@@ -45,4 +45,6 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::post('/import-siswa', [GurketController::class, 'importSiswa']);
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
     Route::get('/absensi/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
+    Route::post('/absensi/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
+
 });

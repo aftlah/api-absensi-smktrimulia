@@ -82,7 +82,7 @@ class GurketController extends Controller
         ]);
     }
 
-    public function verifikasiIzinSakit(Request $request)
+    public function updateStatusIzinSakit(Request $request)
     {
         $request->validate([
             'absensi_id' => 'required|exists:absensi,absensi_id',
@@ -90,22 +90,18 @@ class GurketController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        $absensi = Absensi::find($request->input('absensi_id'));
+        $absensi = Absensi::findOrFail($request->input('absensi_id'));
         $absensi->status = $request->input('status');
-        if ($request->has('keterangan')) {
+        if ($request->filled('keterangan')) {
             $absensi->keterangan = $request->input('keterangan');
         }
         $absensi->save();
-
-        // return response()->json([
-        //     'message' => 'Status absensi berhasil diperbarui',
-        //     'absensi' => $absensi,
-        // ]);
 
         return ApiResponse::success([
             'message' => 'Status absensi berhasil diperbarui',
             'absensi' => $absensi,
         ]);
     }
+
 
 }
