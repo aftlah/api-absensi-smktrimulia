@@ -11,15 +11,16 @@ class WaliKelas extends Model
 
     protected $table = 'wali_kelas';
     protected $primaryKey = 'walas_id';
-    protected $fillable = ['nip', 'nama', 'akun_id', 'kelas_id'];
+    protected $fillable = ['nip', 'nama', 'akun_id'];
 
     public function akun()
     {
         return $this->belongsTo(Akun::class, 'akun_id', 'akun_id');
     }
-
+    
+    // kelas
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class, 'kelas_id', 'kelas_id');
+        return $this->hasOne(Kelas::class, 'walas_id', 'walas_id');
     }
 }

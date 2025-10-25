@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('guru_piket', function (Blueprint $table) {
             $table->id('gurket_id');
-            $table->string('nip', 50)->unique();
-            $table->string('nama', 100);
+            $table->string('nip', 18)->unique();
+            $table->string('nama', 255);
 
             $table->unsignedBigInteger('akun_id');
             $table->foreign('akun_id')->references('akun_id')->on('akun')->onDelete('cascade');

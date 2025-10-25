@@ -12,15 +12,34 @@ class Kelas extends Model
 
     protected $table = 'kelas';
     protected $primaryKey = 'kelas_id';
-    protected $fillable = ['tingkat', 'jurusan', 'paralel'];
+    protected $fillable = ['tingkat', 'paralel', 'thn_ajaran', 'jurusan_id', 'walas_id'];
 
     public function siswa()
     {
         return $this->hasMany(Siswa::class, 'kelas_id', 'kelas_id');
     }
 
-    public function waliKelas()
+    
+    public function jurusan()
     {
-        return $this->hasOne(WaliKelas::class, 'kelas_id', 'kelas_id');
+        return $this->belongsTo(Jurusan::class, 'jurusan_id', 'jurusan_id');
+    }
+
+    public function riwayatKelas()
+    {
+        return $this->hasMany(RiwayatKelas::class, 'kelas_id', 'kelas_id');
+    }
+
+    // wali kelas
+    public function walas()
+    {
+        return $this->belongsTo(WaliKelas::class, 'walas_id', 'walas_id');
+    }
+
+
+    // rencana_absensi
+    public function rencanaAbsensi()
+    {
+        return $this->hasMany(RencanaAbsensi::class, 'kelas_id', 'kelas_id');
     }
 }

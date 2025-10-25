@@ -13,14 +13,16 @@ class Absensi extends Model
     protected $primaryKey = 'absensi_id';
     protected $fillable = [
         'siswa_id',
-        'tanggal',
+        'rensi_id',
         'jam_datang',
         'jam_pulang',
+        'latitude_datang',
+        'longitude_datang',
+        'latitude_pulang',
+        'longitude_pulang',
         'status',
-        'latitude',
-        'longitude',
+        'is_verif',
         'bukti',
-        'jenis_absen'
     ];
 
     public function siswa()

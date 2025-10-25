@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('akun', function (Blueprint $table) {
             $table->id('akun_id');
-            $table->string('username', 50)->unique(); // NIS/NIP
-            $table->string('password');
+            $table->string('username', 20)->unique(); // NIS/NIP
+            $table->string('password',  255);
             $table->enum('role', ['siswa', 'walas', 'admin', 'gurket']);
             $table->timestamps();
         });

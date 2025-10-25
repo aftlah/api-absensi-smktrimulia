@@ -13,8 +13,12 @@ return new class extends Migration {
         Schema::create('kelas', function (Blueprint $table) {
             $table->id('kelas_id');
             $table->enum('tingkat', ['X', 'XI', 'XII']);
-            $table->string('jurusan', 50);
-            $table->integer('paralel')->nullable();
+            $table->char('paralel', 1)->nullable();
+            $table->string('thn_ajaran', 9);
+            $table->unsignedBigInteger('jurusan_id');
+            $table->foreign('jurusan_id')->references('jurusan_id')->on('jurusan')->onDelete('cascade');
+            $table->unsignedBigInteger('walas_id');
+            $table->foreign('walas_id')->references('walas_id')->on('wali_kelas')->onDelete('cascade');
             $table->timestamps();
         });
     }

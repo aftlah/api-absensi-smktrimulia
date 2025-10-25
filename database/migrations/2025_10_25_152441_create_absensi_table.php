@@ -15,14 +15,17 @@ return new class extends Migration {
 
             $table->unsignedBigInteger('siswa_id');
             $table->foreign('siswa_id')->references('siswa_id')->on('siswa')->onDelete('cascade');
-            $table->enum('jenis_absen', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa'])->nullable();
-
-            $table->date('tanggal');
+            // rencana absensi
+            $table->unsignedBigInteger('rensi_id');
+            $table->foreign('rensi_id')->references('rensi_id')->on('rencana_absensi')->onDelete('cascade');
             $table->time('jam_datang')->nullable();
             $table->time('jam_pulang')->nullable();
-            $table->enum('status', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa','pending']);
-            $table->decimal('latitude', 10, 8)->nullable();
-            $table->decimal('longitude', 11, 8)->nullable();
+            $table->decimal('latitude_datang', 10, 8)->nullable();
+            $table->decimal('longitude_datang', 11, 8)->nullable();
+            $table->decimal('latitude_pulang', 10, 8)->nullable();
+            $table->decimal('longitude_pulang', 11, 8)->nullable();
+            $table->enum('status', ['hadir', 'terlambat', 'izin', 'sakit', 'alfa']);
+            $table->boolean('is_verif')->default(false);
             $table->string('bukti')->nullable();
 
             $table->timestamps();
