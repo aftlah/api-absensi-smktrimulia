@@ -17,17 +17,18 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
 
 // Hanya siswa
 Route::middleware(['auth:api', 'role:siswa'])->group(function () {
-    Route::post('/absensi', [AbsensiController::class, 'absen']);
-    Route::post('/absensi/pulang', [AbsensiController::class, 'absenPulang']);
-    Route::post('/absensi/izinsakit', [AbsensiController::class, 'izinSakit']);
-    Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat']);
-    Route::get('/absensi/hariini', [AbsensiController::class, 'hariIni']);
+    Route::prefix('/absensi')->group(function () {
+        Route::post('/', [AbsensiController::class, 'absen']);
+        Route::post('/pulang', [AbsensiController::class, 'absenPulang']);
+        Route::post('/izinsakit', [AbsensiController::class, 'izinSakit']);
+        Route::get('/riwayat', [AbsensiController::class, 'riwayat']);
+        Route::get('/hariini', [AbsensiController::class, 'hariIni']);
+    });
 });
 
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/admin/rekap', [AdminController::class, 'rekap']);
-
 });
 
 // Admin, gurket & wali kelas
@@ -44,7 +45,9 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GurketController::class, 'laporan']);
     Route::post('/import-siswa', [GurketController::class, 'importSiswa']);
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
-    Route::get('/absensi/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
-    Route::post('/absensi/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
 
+    Route::prefix('/absensi')->group(function () {
+        Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
+        Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
+    });
 });
