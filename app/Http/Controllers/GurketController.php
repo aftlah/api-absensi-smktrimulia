@@ -103,5 +103,23 @@ class GurketController extends Controller
         ]);
     }
 
+    public function getAbsensiSiswa(){
+
+        $absensi = Absensi::all();
+        return ApiResponse::success([
+            'message' => 'Absensi siswa berhasil diambil',
+            'absensi' => $absensi,
+        ]);
+    }
+
+    public function getAbsensiHariIni(){
+
+        $absensi = Absensi::whereDate('tanggal', Carbon::today()->toDateString())->get();
+        return ApiResponse::success([
+            'message' => 'Absensi siswa hari ini berhasil diambil',
+            'absensi' => $absensi,
+        ]);
+    }
+
 
 }
