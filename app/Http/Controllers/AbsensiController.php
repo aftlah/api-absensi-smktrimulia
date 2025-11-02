@@ -167,7 +167,7 @@ class AbsensiController extends Controller
         $riwayat = Absensi::where('siswa_id', $user->siswa->siswa_id)->get();
 
         // return response()->json($riwayat);
-        return ApiResponse::success($riwayat);
+        return ApiResponse::success($riwayat, 'Riwayat absensi berhasil diambil');
     }
 
     public function hariIni()
@@ -181,7 +181,7 @@ class AbsensiController extends Controller
             $riwayat->bukti = asset('storage/' . $riwayat->bukti);
         }
 
-        return ApiResponse::success($riwayat);
+        return ApiResponse::success($riwayat, 'Riwayat absensi hari ini berhasil diambil');
     }
 
 }
