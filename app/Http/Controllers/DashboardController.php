@@ -15,7 +15,7 @@ class DashboardController extends Controller
 
         return ApiResponse::success([
             'total_siswa' => $totalSiswa,
-        ]);
+        ], 'Total siswa berhasil diambil');
     }
 
     public function hadirHariIni()
@@ -28,7 +28,7 @@ class DashboardController extends Controller
 
         return ApiResponse::success([
             'siswa_hadir_hariini' => $totalHadir,
-        ]);
+        ], 'Total siswa hadir hari ini berhasil diambil');
     }
 
     public function terlambatHariIni()
@@ -39,16 +39,17 @@ class DashboardController extends Controller
         })->count();
         return ApiResponse::success([
             'siswa_terlambat_hariini' => $totalTerlambat,
-        ]);
+        ], 'Total siswa terlambat hari ini berhasil diambil');
     }
 
-    public function izinSakitHariIni(){
+    public function izinSakitHariIni()
+    {
         $totalIzinSakit = Siswa::whereHas('absensi', function ($q) {
             $q->where('tanggal', now()->toDateString())
                 ->whereIn('status', ['pending']);
         })->count();
         return ApiResponse::success([
             'siswa_izin_sakit_hariini' => $totalIzinSakit,
-        ]);
+        ], 'Total siswa izin sakit hari ini berhasil diambil');
     }
 }
