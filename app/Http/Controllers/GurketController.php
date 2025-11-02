@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
+use App\Models\Siswa;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -43,7 +44,7 @@ class GurketController extends Controller
         return ApiResponse::success([
             'tanggal' => $tanggal,
             'laporan' => $laporan
-        ]);
+        ], 'Laporan absensi berhasil diambil');
     }
 
     public function importSiswa(Request $request)
@@ -74,12 +75,10 @@ class GurketController extends Controller
         $siswaIzinSakit = Absensi::with('siswa')
             ->where('status', 'pending')
             ->get();
-        // return response()->json([
-        //     'siswa_izin_sakit' => $siswaIzinSakit,
-        // ]);
+
         return ApiResponse::success([
             'siswa_izin_sakit' => $siswaIzinSakit,
-        ]);
+        ], 'Data absensi izin sakit berhasil diambil');
     }
 
     public function updateStatusIzinSakit(Request $request)
@@ -98,28 +97,76 @@ class GurketController extends Controller
         $absensi->save();
 
         return ApiResponse::success([
-            'message' => 'Status absensi berhasil diperbarui',
             'absensi' => $absensi,
-        ]);
+        ], 'Status absensi berhasil diperbarui');
     }
 
-    public function getAbsensiSiswa(){
+    public function getAbsensiSiswaHariIni()
+    {
 
-        $absensi = Absensi::all();
+        $absensi = Absensi::with('siswa.kelas')
+            ->whereDate('tanggal', Carbon::today()->toDateString())
+            ->get();
         return ApiResponse::success([
-            'message' => 'Absensi siswa berhasil diambil',
             'absensi' => $absensi,
-        ]);
+        ], 'Absensi siswa berhasil diambil');
     }
 
-    public function getAbsensiHariIni(){
+    public function showAbsensiSiswa(Request $request)
+    {
 
-        $absensi = Absensi::whereDate('tanggal', Carbon::today()->toDateString())->get();
+        $kelasId = $request->query('kelas_id'); 
+        $tanggal = $request->query('tanggal');
+
+        $tanggal = $tanggal ? Carbon::parse($tanggal)->toDateString() : Carbon::today()->toDateString();
+
+        // Query absensi dengan relasi siswa dan kelas
+        $query = Absensi::with('siswa.kelas')
+            ->whereDate('tanggal', $tanggal);
+
+        // Jika ada filter kelas, tambahkan kondisi
+        if (!empty($kelasId)) {
+            $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+                $q->where('kelas_id', $kelasId);
+            });
+        }
+
+        // Ambil data dan format ulang hasilnya
+        $absensi = $query->get()->map(function ($item) {
+            return [
+                // --- Data siswa ---
+                'siswa_id'   => $item->siswa->siswa_id ?? null,
+                'nis'        => $item->siswa->nis ?? null,
+                'nama'       => $item->siswa->nama ?? null,
+                'jenkel'     => $item->siswa->jenkel ?? null,
+
+                // --- Data kelas ---
+                'kelas_id'   => $item->siswa->kelas->kelas_id ?? null,
+                'tingkat'    => $item->siswa->kelas->tingkat ?? null,
+                'jurusan'    => $item->siswa->kelas->jurusan ?? null,
+                'paralel'    => $item->siswa->kelas->paralel ?? null,
+
+                // --- Data absensi ---
+                'absensi_id' => $item->absensi_id,
+                'jenis_absen' => $item->jenis_absen,
+                'tanggal'    => $item->tanggal,
+                'jam_datang' => $item->jam_datang,
+                'jam_pulang' => $item->jam_pulang,
+                'status'     => $item->status,
+                'latitude'   => $item->latitude,
+                'longitude'  => $item->longitude,
+                'bukti'      => $item->bukti,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        });
+
         return ApiResponse::success([
-            'message' => 'Absensi siswa hari ini berhasil diambil',
+            'filter' => [
+                'kelas_id' => $kelasId ?? 'Semua',
+                'tanggal' => $tanggal,
+            ],
             'absensi' => $absensi,
-        ]);
+        ], 'Data absensi berhasil diambil');
     }
-
-
 }
