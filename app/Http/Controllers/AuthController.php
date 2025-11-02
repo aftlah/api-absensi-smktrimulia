@@ -40,7 +40,7 @@ class AuthController extends Controller
     public function me()
     {
         // return response()->json(Auth::user());
-        return ApiResponse::success(Auth::user());
+        return ApiResponse::success(Auth::user(), 'User berhasil diambil');
     }
 
     /**
@@ -69,6 +69,6 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
             'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
-        ]);
+        ], 'Token refreshed');
     }
 }
