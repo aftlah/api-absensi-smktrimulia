@@ -6,6 +6,7 @@ use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GurketController;
+use App\Http\Controllers\UtillityController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -49,5 +50,12 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::prefix('/absensi')->group(function () {
         Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
         Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
+        Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
+        Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
     });
+});
+
+
+Route::prefix('utillity')->group(function () {
+    Route::get('/getListKelas', [UtillityController::class, 'getListKelas']);
 });
