@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
+use App\Models\Kelas;
 use App\Models\Siswa;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -115,7 +116,7 @@ class GurketController extends Controller
     public function showAbsensiSiswa(Request $request)
     {
 
-        $kelasId = $request->query('kelas_id'); 
+        $kelasId = $request->query('kelas_id');
         $tanggal = $request->query('tanggal');
 
         $tanggal = $tanggal ? Carbon::parse($tanggal)->toDateString() : Carbon::today()->toDateString();
@@ -168,5 +169,94 @@ class GurketController extends Controller
             ],
             'absensi' => $absensi,
         ], 'Data absensi berhasil diambil');
+    }
+
+
+    public function getDataSiswa()
+    {
+        $siswa = Siswa::with(['kelas', 'akun'])->get()->map(function ($item) {
+            return [
+                'siswa_id' => $item->siswa_id,
+                'nis'      => $item->nis,
+                'nama'     => $item->nama,
+                'jenkel'   => $item->jenkel,
+
+                'kelas'    => $item->kelas ? [
+                    'kelas_id' => $item->kelas->kelas_id,
+                    'tingkat'  => $item->kelas->tingkat,
+                    'jurusan'  => $item->kelas->jurusan,
+                    'paralel'  => $item->kelas->paralel,
+                ] : null,
+
+                'akun'     => $item->akun ? [
+                    'user_id'  => $item->akun->user_id,
+                    'username' => $item->akun->username,
+                    'role'     => $item->akun->role,
+                ] : null,
+            ];
+        });
+
+        return ApiResponse::success($siswa, 'Data siswa berhasil diambil');
+    }
+
+
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'siswa_id' => 'required|exists:siswa,siswa_id',
+
+            // Siswa fields
+            'nis' => 'nullable|string|unique:siswa,nis,' . $request->input('siswa_id') . ',siswa_id',
+            'nama' => 'nullable|string',
+            'jenkel' => 'nullable|string|in:L,P',
+            'kelas_id' => 'nullable|exists:kelas,kelas_id',
+
+            // Akun fields
+            'username' => 'nullable|string|unique:akun,username,' . Siswa::find($request->input('siswa_id'))->akun_id . ',akun_id',
+            'password' => 'nullable|string|min:6',
+            'role' => 'nullable|string|in:siswa,gurket,walas,admin',
+
+            // Optional: update kelas yang sudah ada
+            'kelas.tingkat' => 'nullable|string',
+            'kelas.paralel' => 'nullable|string',
+            'kelas.thn_ajaran' => 'nullable|string',
+            'kelas.jurusan_id' => 'nullable|exists:jurusan,jurusan_id',
+            'kelas.walas_id' => 'nullable|exists:wali_kelas,walas_id',
+        ]);
+
+        $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
+
+        // Update Siswa
+        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']));
+        $siswa->save();
+
+        // Update Akun
+        if ($siswa->akun) {
+            if ($request->has('username')) {
+                $siswa->akun->username = $request->input('username');
+            }
+            if ($request->has('password')) {
+                $siswa->akun->password = bcrypt($request->input('password'));
+            }
+            if ($request->has('role')) {
+                $siswa->akun->role = $request->input('role');
+            }
+            $siswa->akun->save();
+        }
+
+        // Update Kelas (jika data kelas sudah ada dan ingin diperbarui)
+        if ($siswa->kelas && $request->has('kelas')) {
+            $kelasData = $request->input('kelas');
+            $siswa->kelas->fill($kelasData);
+            $siswa->kelas->save();
+        }
+
+        // Reload dengan relasi terbaru
+        $siswa->load(['kelas', 'akun']);
+
+        return ApiResponse::success([
+            'siswa' => $siswa,
+        ], 'Data siswa berhasil diperbarui');
     }
 }
