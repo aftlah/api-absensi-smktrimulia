@@ -18,18 +18,49 @@ class DashboardController extends Controller
         ], 'Total siswa berhasil diambil');
     }
 
+    // public function hadirHariIni()
+    // {
+
+    //     $totalHadir = Siswa::whereHas('absensi', function ($q) {
+    //         $q->where('tanggal', now()->toDateString())
+    //             ->where('status', 'hadir');
+    //     })->count();
+
+    //     return ApiResponse::success([
+    //         'siswa_hadir_hariini' => $totalHadir,
+    //     ], 'Total siswa hadir hari ini berhasil diambil');
+    // }
+
     public function hadirHariIni()
     {
+        $hariIni = now()->toDateString();
 
-        $totalHadir = Siswa::whereHas('absensi', function ($q) {
-            $q->where('tanggal', now()->toDateString())
-                ->where('status', 'hadir');
-        })->count();
+        $siswaHadir = Siswa::whereHas('absensi', function ($absensiQuery) use ($hariIni) {
+            $absensiQuery
+                ->where('status', 'hadir')
+                ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                    $rencanaQuery->where('tanggal', $hariIni);
+                });
+        })
+            ->with([
+                'absensi' => function ($absensiQuery) use ($hariIni) {
+                    $absensiQuery
+                        ->where('status', 'hadir')
+                        ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                            $rencanaQuery->where('tanggal', $hariIni);
+                        })
+                        ->with('rencanaAbsensi');
+                },
+                'kelas'
+            ])
+            ->get();
 
         return ApiResponse::success([
-            'siswa_hadir_hariini' => $totalHadir,
-        ], 'Total siswa hadir hari ini berhasil diambil');
+            'total_hadir' => $siswaHadir->count(),
+            'siswa_hadir_hari_ini' => $siswaHadir
+        ], 'Data siswa hadir hari ini berhasil diambil');
     }
+
 
     // public function terlambatHariIni()
     // {
@@ -71,18 +102,47 @@ class DashboardController extends Controller
             ->get();
 
         return ApiResponse::success([
-            'siswa_terlambat_hariini' => $siswaTerlambat
-        ], 'Daftar siswa terlambat hari ini berhasil diambil');
+            'total_terlambat' => $siswaTerlambat->count(),
+            'siswa_terlambat_hari_ini' => $siswaTerlambat
+        ], 'Data siswa terlambat hari ini berhasil diambil');
     }
 
+    // public function izinSakitHariIni()
+    // {
+    //     $totalIzinSakit = Siswa::whereHas('absensi', function ($q) {
+    //         $q->where('tanggal', now()->toDateString())
+    //             ->whereIn('status', ['pending']);
+    //     })->count();
+    //     return ApiResponse::success([
+    //         'siswa_izin_sakit_hariini' => $totalIzinSakit,
+    //     ], 'Total siswa izin sakit hari ini berhasil diambil');
+    // }
     public function izinSakitHariIni()
     {
-        $totalIzinSakit = Siswa::whereHas('absensi', function ($q) {
-            $q->where('tanggal', now()->toDateString())
-                ->whereIn('status', ['pending']);
-        })->count();
+        $hariIni = now()->toDateString();
+
+        $siswaIzinSakit = Siswa::whereHas('absensi', function ($absensiQuery) use ($hariIni) {
+            $absensiQuery
+                ->whereIn('status', ['izin', 'sakit']) // sesuaikan dengan status di DB kamu
+                ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                    $rencanaQuery->where('tanggal', $hariIni);
+                });
+        })
+            ->with([
+                'absensi' => function ($absensiQuery) use ($hariIni) {
+                    $absensiQuery->whereIn('status', ['izin', 'sakit'])
+                        ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                            $rencanaQuery->where('tanggal', $hariIni);
+                        })
+                        ->with('rencanaAbsensi');
+                },
+                'kelas'
+            ])
+            ->get();
+
         return ApiResponse::success([
-            'siswa_izin_sakit_hariini' => $totalIzinSakit,
-        ], 'Total siswa izin sakit hari ini berhasil diambil');
+            'total_izin_sakit' => $siswaIzinSakit->count(),
+            'siswa_izin_sakit_hari_ini' => $siswaIzinSakit
+        ], 'Data siswa izin/sakit hari ini berhasil diambil');
     }
 }
