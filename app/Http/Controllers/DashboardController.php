@@ -31,15 +31,48 @@ class DashboardController extends Controller
         ], 'Total siswa hadir hari ini berhasil diambil');
     }
 
+    // public function terlambatHariIni()
+    // {
+    //     $totalTerlambat = Siswa::whereHas('absensi', function ($q) {
+    //         $q->whereHas('rencanaAbsensi', function ($q) {
+    //             $q->where('tanggal', now()->toDateString());
+    //         })->where('status', 'terlambat');
+    //     })
+    //         ->orWhereHas('rencanaAbsensi', function ($q) {
+    //             $q->where('tanggal', now()->toDateString())
+    //                 ->where('status', 'terlambat');
+    //         })
+    //         ->count();
+    //     return ApiResponse::success([
+    //         'siswa_terlambat_hariini' => $totalTerlambat,
+    //     ], 'Total siswa terlambat hari ini berhasil diambil');
+    // }
+
     public function terlambatHariIni()
     {
-        $totalTerlambat = Siswa::whereHas('absensi', function ($q) {
-            $q->where('tanggal', now()->toDateString())
-                ->where('status', 'terlambat');
-        })->count();
+        $hariIni = now()->toDateString();
+
+        $siswaTerlambat = Siswa::whereHas('absensi', function ($absensiQuery) use ($hariIni) {
+            $absensiQuery->where('status', 'terlambat')
+                ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                    $rencanaQuery->where('tanggal', $hariIni);
+                });
+        })
+            ->with([
+                'absensi' => function ($absensiQuery) use ($hariIni) {
+                    $absensiQuery->where('status', 'terlambat')
+                        ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                            $rencanaQuery->where('tanggal', $hariIni);
+                        })
+                        ->with('rencanaAbsensi');
+                },
+                'kelas'
+            ])
+            ->get();
+
         return ApiResponse::success([
-            'siswa_terlambat_hariini' => $totalTerlambat,
-        ], 'Total siswa terlambat hari ini berhasil diambil');
+            'siswa_terlambat_hariini' => $siswaTerlambat
+        ], 'Daftar siswa terlambat hari ini berhasil diambil');
     }
 
     public function izinSakitHariIni()

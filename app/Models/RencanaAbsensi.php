@@ -10,7 +10,7 @@ class RencanaAbsensi extends Model
     use HasFactory;
 
     protected $table = 'rencana_absensi';
-    protected $primaryKey = 'rencana_absensi_id';
+    protected $primaryKey = 'rensi_id';
     protected $fillable = ['tanggal', 'status_hari', 'keterangan', 'kelas_id'];
 
     // kelas

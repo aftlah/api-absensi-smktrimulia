@@ -29,4 +29,10 @@ class Absensi extends Model
     {
         return $this->belongsTo(Siswa::class, 'siswa_id', 'siswa_id');
     }
+
+    // app/Models/Absensi.php
+    public function rencanaAbsensi()
+    {
+        return $this->belongsTo(RencanaAbsensi::class, 'rensi_id', 'rensi_id');
+    }
 }
