@@ -23,8 +23,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         /** 🔹 1. Jurusan */
-        $jurusanTKJ = Jurusan::firstOrCreate(['nama_jurusan' => 'Teknik Komputer dan Jaringan']);
-        $jurusanOTKP = Jurusan::firstOrCreate(['nama_jurusan' => 'Otomatisasi dan Tata Kelola Perkantoran']);
+        $jurusanTKJ = Jurusan::firstOrCreate(['nama_jurusan' => 'TKJ']);
+        $jurusanMP = Jurusan::firstOrCreate(['nama_jurusan' => 'MP']);
+        $jurusanBR = Jurusan::firstOrCreate(['nama_jurusan' => 'BR']);
+
+
 
         /** 🔹 2. Admin */
         $adminAkun = Akun::firstOrCreate(
@@ -66,7 +69,12 @@ class DatabaseSeeder extends Seeder
         );
 
         $kelasXI = Kelas::firstOrCreate(
-            ['tingkat' => 'XI', 'jurusan_id' => $jurusanOTKP->jurusan_id, 'paralel' => 2],
+            ['tingkat' => 'XI', 'jurusan_id' => $jurusanMP->jurusan_id, 'paralel' => 2],
+            ['thn_ajaran' => '2023/2024', 'walas_id' => $waliKelas->walas_id]
+        );
+
+        $kelasXII = Kelas::firstOrCreate(
+            ['tingkat' => 'XII', 'jurusan_id' => $jurusanBR->jurusan_id, 'paralel' => 3],
             ['thn_ajaran' => '2023/2024', 'walas_id' => $waliKelas->walas_id]
         );
 
@@ -78,6 +86,9 @@ class DatabaseSeeder extends Seeder
             );
 
             $kelas = $i % 2 == 0 ? $kelasX : $kelasXI;
+            if ($i == 5) {
+                $kelas = $kelasXII;
+            }
 
             $siswa = Siswa::firstOrCreate(
                 ['nis' => '2025' . str_pad($i, 3, '0', STR_PAD_LEFT)],
