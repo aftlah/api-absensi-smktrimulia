@@ -102,15 +102,33 @@ class GurketController extends Controller
         ], 'Status absensi berhasil diperbarui');
     }
 
+    // public function getAbsensiSiswaHariIni()
+    // {
+
+    //     $absensi = Absensi::with('siswa.kelas')
+    //         ->whereDate('tanggal', Carbon::today()->toDateString())
+    //         ->get();
+    //     return ApiResponse::success([
+    //         'absensi' => $absensi,
+    //     ], 'Absensi siswa berhasil diambil');
+    // }
+
     public function getAbsensiSiswaHariIni()
     {
+        $hariIni = Carbon::today()->toDateString();
 
-        $absensi = Absensi::with('siswa.kelas')
-            ->whereDate('tanggal', Carbon::today()->toDateString())
+        $absensi = Absensi::with([
+            'siswa.kelas',
+            'rencanaAbsensi'
+        ])
+            ->whereHas('rencanaAbsensi', function ($query) use ($hariIni) {
+                $query->whereDate('tanggal', $hariIni);
+            })
             ->get();
+
         return ApiResponse::success([
             'absensi' => $absensi,
-        ], 'Absensi siswa berhasil diambil');
+        ], 'Absensi siswa hari ini berhasil diambil');
     }
 
     public function showAbsensiSiswa(Request $request)
