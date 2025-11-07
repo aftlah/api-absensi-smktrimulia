@@ -131,17 +131,79 @@ class GurketController extends Controller
         ], 'Absensi siswa hari ini berhasil diambil');
     }
 
+    // public function showAbsensiSiswa(Request $request)
+    // {
+
+    //     $kelasId = $request->query('kelas_id');
+    //     $tanggal = $request->query('tanggal');
+
+    //     $tanggal = $tanggal ? Carbon::parse($tanggal)->toDateString() : Carbon::today()->toDateString();
+
+    //     // Query absensi dengan relasi siswa dan kelas
+    //     $query = Absensi::with('siswa.kelas')
+    //         ->whereDate('tanggal', $tanggal);
+
+    //     // Jika ada filter kelas, tambahkan kondisi
+    //     if (!empty($kelasId)) {
+    //         $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+    //             $q->where('kelas_id', $kelasId);
+    //         });
+    //     }
+
+    //     // Ambil data dan format ulang hasilnya
+    //     $absensi = $query->get()->map(function ($item) {
+    //         return [
+    //             // --- Data siswa ---
+    //             'siswa_id'   => $item->siswa->siswa_id ?? null,
+    //             'nis'        => $item->siswa->nis ?? null,
+    //             'nama'       => $item->siswa->nama ?? null,
+    //             'jenkel'     => $item->siswa->jenkel ?? null,
+
+    //             // --- Data kelas ---
+    //             'kelas_id'   => $item->siswa->kelas->kelas_id ?? null,
+    //             'tingkat'    => $item->siswa->kelas->tingkat ?? null,
+    //             'jurusan'    => $item->siswa->kelas->jurusan ?? null,
+    //             'paralel'    => $item->siswa->kelas->paralel ?? null,
+
+    //             // --- Data absensi ---
+    //             'absensi_id' => $item->absensi_id,
+    //             'jenis_absen' => $item->jenis_absen,
+    //             'tanggal'    => $item->tanggal,
+    //             'jam_datang' => $item->jam_datang,
+    //             'jam_pulang' => $item->jam_pulang,
+    //             'status'     => $item->status,
+    //             'latitude'   => $item->latitude,
+    //             'longitude'  => $item->longitude,
+    //             'bukti'      => $item->bukti,
+    //             'created_at' => $item->created_at,
+    //             'updated_at' => $item->updated_at,
+    //         ];
+    //     });
+
+    //     return ApiResponse::success([
+    //         'filter' => [
+    //             'kelas_id' => $kelasId ?? 'Semua',
+    //             'tanggal' => $tanggal,
+    //         ],
+    //         'absensi' => $absensi,
+    //     ], 'Data absensi berhasil diambil');
+    // }
+
+
     public function showAbsensiSiswa(Request $request)
     {
-
         $kelasId = $request->query('kelas_id');
         $tanggal = $request->query('tanggal');
 
-        $tanggal = $tanggal ? Carbon::parse($tanggal)->toDateString() : Carbon::today()->toDateString();
+        $tanggal = $tanggal
+            ? Carbon::parse($tanggal)->toDateString()
+            : Carbon::today()->toDateString();
 
-        // Query absensi dengan relasi siswa dan kelas
-        $query = Absensi::with('siswa.kelas')
-            ->whereDate('tanggal', $tanggal);
+        // Query absensi dengan relasi siswa, kelas, dan rencana_absensi
+        $query = Absensi::with(['siswa.kelas', 'rencanaAbsensi'])
+            ->whereHas('rencanaAbsensi', function ($q) use ($tanggal) {
+                $q->whereDate('tanggal', $tanggal);
+            });
 
         // Jika ada filter kelas, tambahkan kondisi
         if (!empty($kelasId)) {
@@ -150,7 +212,7 @@ class GurketController extends Controller
             });
         }
 
-        // Ambil data dan format ulang hasilnya
+        // Ambil data dan format hasilnya
         $absensi = $query->get()->map(function ($item) {
             return [
                 // --- Data siswa ---
@@ -167,13 +229,15 @@ class GurketController extends Controller
 
                 // --- Data absensi ---
                 'absensi_id' => $item->absensi_id,
-                'jenis_absen' => $item->jenis_absen,
-                'tanggal'    => $item->tanggal,
+                'jenis_absen' => $item->jenis_absen ?? null,
+                'tanggal'    => $item->rencanaAbsensi->tanggal ?? null,
                 'jam_datang' => $item->jam_datang,
                 'jam_pulang' => $item->jam_pulang,
                 'status'     => $item->status,
-                'latitude'   => $item->latitude,
-                'longitude'  => $item->longitude,
+                'latitude_datang' => $item->latitude_datang ?? null,
+                'longitude_datang' => $item->longitude_datang ?? null,
+                'latitude_pulang' => $item->latitude_pulang ?? null,
+                'longitude_pulang' => $item->longitude_pulang ?? null,
                 'bukti'      => $item->bukti,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
@@ -188,6 +252,7 @@ class GurketController extends Controller
             'absensi' => $absensi,
         ], 'Data absensi berhasil diambil');
     }
+
 
 
     public function getDataSiswa()
