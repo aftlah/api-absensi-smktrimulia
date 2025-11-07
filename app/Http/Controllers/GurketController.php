@@ -48,25 +48,47 @@ class GurketController extends Controller
         ], 'Laporan absensi berhasil diambil');
     }
 
+    // public function importSiswa(Request $request)
+    // {
+    //     $request->validate([
+    //         'file' => 'required|mimes:xlsx,xls,csv'
+    //     ]);
+
+    //     try {
+    //         $importer = new ImportHelper();
+    //         $kelasTerimpor = $importer->importSiswa($request->file('file'));
+
+    //         return response()->json([
+    //             'message' => 'Data siswa berhasil diimpor',
+    //             'kelas_terimpor' => $kelasTerimpor,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Gagal mengimpor data siswa',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
     public function importSiswa(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
         ]);
 
         try {
             $importer = new ImportHelper();
-            $kelasTerimpor = $importer->importSiswa($request->file('file'));
+            $hasilImport = $importer->importSiswa($request->file('file'));
 
-            return response()->json([
-                'message' => 'Data siswa berhasil diimpor',
-                'kelas_terimpor' => $kelasTerimpor,
-            ]);
+            return ApiResponse::success([
+                'kelas_terdaftar' => $hasilImport['kelas_terdaftar'],
+                'data_siswa' => $hasilImport['data_siswa'],
+            ], 'Data siswa berhasil diimpor');
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Gagal mengimpor data siswa',
-                'error' => $e->getMessage(),
-            ], 500);
+            return ApiResponse::error(
+                'Gagal mengimpor data siswa',
+                $e->getMessage()
+            );
         }
     }
 

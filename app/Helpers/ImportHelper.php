@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\Akun;
 use App\Models\Siswa;
 use App\Models\Kelas;
+use App\Models\Jurusan;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -20,42 +21,52 @@ class ImportHelper
         $sheetNames = $spreadsheet->getSheetNames();
         $kelasMap = [];
 
-        // Deteksi kelas untuk setiap sheet
         foreach ($sheetNames as $sheetName) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
-            $kelasCell = trim((string) $sheet->getCell('C7')->getValue());
+            try {
+                // Contoh nama sheet: "X TKJ", "X MP", "X BR"
+                $sheetParts = preg_split('/\s+/', trim($sheetName));
+                $tingkat = strtoupper($sheetParts[0] ?? 'X');
+                $jurusanKode = strtoupper($sheetParts[1] ?? 'UMUM');
 
-            $tingkat = null;
-            $jurusan = null;
-            $paralel = 1;
+                // Coba cari jurusan berdasarkan kode
+                $jurusan = Jurusan::where('nama_jurusan', $jurusanKode)->first();
 
-            if (preg_match('/^(X{1,3})\s+.*\((.*?)\)/', $kelasCell, $matches)) {
-                $tingkat = $matches[1] ?? null;
-                $jurusan = $matches[2] ?? null;
-            } else {
-                $tingkat = 'X';
-                $jurusan = 'Umum';
+                // Jika jurusan tidak ditemukan, buat otomatis
+                if (!$jurusan) {
+                    $jurusan = Jurusan::create([
+                        'nama_jurusan' => $jurusanKode,
+                    ]);
+                }
+
+                // Coba cari kelas dengan tingkat + jurusan
+                $kelas = Kelas::where('tingkat', $tingkat)
+                    ->where('jurusan_id', $jurusan->jurusan_id)
+                    ->first();
+
+                // Jika kelas tidak ditemukan, buat otomatis
+                if (!$kelas) {
+                    $kelas = Kelas::create([
+                        'tingkat' => $tingkat,
+                        'jurusan_id' => $jurusan->jurusan_id,
+                        'parallel' => 1,
+                        'thn_ajaran' => date('Y') . '/' . (date('Y') + 1),
+                        'walas_id' => 1, // sesuaikan dengan walas default
+                    ]);
+                }
+
+                $kelasMap[$sheetName] = $kelas->kelas_id;
+            } catch (\Throwable $e) {
+                $kelasMap[$sheetName] = null;
+                continue;
             }
-
-            $kelasModel = Kelas::firstOrCreate(
-                [
-                    'tingkat' => $tingkat,
-                    'jurusan' => $jurusan,
-                    'paralel' => $paralel,
-                ]
-            );
-
-            $kelasMap[$sheetName] = $kelasModel->kelas_id;
         }
 
-        // import multi-sheet dan return siswa yang disimpan
+        // Import semua sheet
         $importer = new SiswaMultiSheetImport($sheetNames, $kelasMap);
         Excel::import($importer, $file);
 
-
         return [
             'status' => 'success',
-            'message' => 'Import siswa berhasil',
             'kelas_terdaftar' => $kelasMap,
             'data_siswa' => $importer->getImportedData(),
         ];
@@ -127,21 +138,20 @@ class SiswaSheetImport implements ToCollection
 
     public function collection(Collection $rows)
     {
+        if (!$this->kelasId) return;
+
         $startRow = 15;
         $rowIndex = 1;
 
         foreach ($rows as $row) {
-            if ($rowIndex++ < $startRow)
-                continue;
-            if (count($row) < 4)
-                continue;
+            if ($rowIndex++ < $startRow) continue;
+            if (count($row) < 4) continue;
 
             $nomorInduk = trim($row[1] ?? '');
             $nama = trim($row[2] ?? '');
             $jk = trim($row[3] ?? '');
 
-            if (!$nomorInduk || !$nama)
-                continue;
+            if (!$nomorInduk || !$nama) continue;
 
             // Buat akun siswa
             $akun = Akun::firstOrCreate(
@@ -163,7 +173,6 @@ class SiswaSheetImport implements ToCollection
                 ]
             );
 
-            // Simpan ke data hasil import
             $this->parent->addImportedData($this->kelas, [
                 'nis' => $siswa->nis,
                 'nama' => $siswa->nama,
@@ -176,13 +185,10 @@ class SiswaSheetImport implements ToCollection
 
     private function normalizeGender($value)
     {
-        if (!$value)
-            return null;
+        if (!$value) return null;
         $v = strtolower(trim($value));
-        if (in_array($v, ['l', 'laki', 'laki-laki', 'male', 'm']))
-            return 'L';
-        if (in_array($v, ['p', 'perempuan', 'female', 'f']))
-            return 'P';
+        if (in_array($v, ['l', 'laki', 'laki-laki', 'male', 'm'])) return 'L';
+        if (in_array($v, ['p', 'perempuan', 'female', 'f'])) return 'P';
         return strtoupper($v);
     }
 }

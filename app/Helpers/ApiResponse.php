@@ -19,8 +19,7 @@ class ApiResponse
         return response()->json([
             'responseStatus' => false,
             'responseMessage' => $message,
-            'responseData' => null,
-            // 'errors' => $errors
+            'errors' => $errors
         ], $code);
     }
 }
