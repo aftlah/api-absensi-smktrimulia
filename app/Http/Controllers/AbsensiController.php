@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\Pengaturan;
+use App\Models\RencanaAbsensi;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +30,43 @@ class AbsensiController extends Controller
     }
 
     // siswa absen datang
+    // public function absen(Request $request)
+    // {
+    //     $request->validate([
+    //         'latitude' => 'required',
+    //         'longitude' => 'required'
+    //     ]);
+
+
+    //     $user = Auth::user(); // ambil user login
+    //     if ($user->role !== 'siswa') {
+    //         // return response()->json(['error' => 'Hanya siswa yang bisa absen'], 403);
+    //         return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
+    //     }
+
+    //     $pengaturan = Pengaturan::first();
+    //     $jarak = $this->hitungJarak($request->latitude, $request->longitude, $pengaturan->latitude, $pengaturan->longitude);
+
+    //     if ($jarak > $pengaturan->radius_meter) {
+    //         // return response()->json(['error' => 'Di luar radius absensi'], 422);
+    //         return ApiResponse::error('Di luar radius absensi', ['distance' => $jarak], 422);
+    //     }
+
+    //     $absensi = Absensi::create([
+    //         'siswa_id' => $user->siswa->siswa_id,
+    //         'tanggal' => now()->toDateString(),
+    //         'jam_datang' => now()->toTimeString(),
+    //         'status' => 'hadir',
+    //         'jenis_absen' => $request->jenis_absen,
+    //         'latitude' => $request->latitude,
+    //         'longitude' => $request->longitude,
+    //         'rensi_id' => null
+    //     ]);
+
+    //     // return response()->json(['message' => 'Absensi berhasil', 'data' => $absensi]);
+    //     return ApiResponse::success($absensi, 'Absensi berhasil');
+    // }
+
     public function absen(Request $request)
     {
         $request->validate([
@@ -36,34 +74,54 @@ class AbsensiController extends Controller
             'longitude' => 'required'
         ]);
 
+        $user = Auth::user();
 
-        $user = Auth::user(); // ambil user login
         if ($user->role !== 'siswa') {
-            // return response()->json(['error' => 'Hanya siswa yang bisa absen'], 403);
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
 
         $pengaturan = Pengaturan::first();
-        $jarak = $this->hitungJarak($request->latitude, $request->longitude, $pengaturan->latitude, $pengaturan->longitude);
+        $jarak = $this->hitungJarak(
+            $request->latitude,
+            $request->longitude,
+            $pengaturan->latitude,
+            $pengaturan->longitude
+        );
 
         if ($jarak > $pengaturan->radius_meter) {
-            // return response()->json(['error' => 'Di luar radius absensi'], 422);
             return ApiResponse::error('Di luar radius absensi', ['distance' => $jarak], 422);
         }
 
+        $hariIni = now()->toDateString();
+        $rencana = RencanaAbsensi::whereDate('tanggal', $hariIni)
+            ->where('kelas_id', $user->siswa->kelas_id)
+            ->first();
+
+        if (!$rencana) {
+            return ApiResponse::error('Belum ada rencana absensi untuk hari ini', null, 422);
+        }
+
+        $sudahAbsen = Absensi::where('siswa_id', $user->siswa->siswa_id)
+            ->whereDate('jam_datang', $hariIni)
+            ->exists();
+
+        if ($sudahAbsen) {
+            return ApiResponse::error('Kamu sudah absen hari ini', null, 422);
+        }
+
         $absensi = Absensi::create([
-            'siswa_id' => $user->siswa->siswa_id,
-            'tanggal' => now()->toDateString(),
-            'jam_datang' => now()->toTimeString(),
-            'status' => 'hadir',
-            'jenis_absen' => $request->jenis_absen,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'siswa_id'         => $user->siswa->siswa_id,
+            'rensi_id'         => $rencana->rensi_id,
+            'jam_datang'       => now()->toTimeString(),
+            'latitude_datang'  => $request->latitude,
+            'longitude_datang' => $request->longitude,
+            'status'           => 'hadir',
+            'is_verif'         => 0,
         ]);
 
-        // return response()->json(['message' => 'Absensi berhasil', 'data' => $absensi]);
         return ApiResponse::success($absensi, 'Absensi berhasil');
     }
+
 
     // siswa absen pulang
     public function absenPulang(Request $request)
@@ -154,7 +212,7 @@ class AbsensiController extends Controller
             'status' => 'pending',
             'jenis_absen' => $request->jenis_absen,
             'keterangan' => $request->keterangan,
-            'bukti' => $path, // simpan path file ke database
+            'bukti' => $path,
         ]);
 
         return ApiResponse::success($absensi, 'Izin sakit berhasil diajukan');
@@ -183,5 +241,4 @@ class AbsensiController extends Controller
 
         return ApiResponse::success($riwayat, 'Riwayat absensi hari ini berhasil diambil');
     }
-
 }
