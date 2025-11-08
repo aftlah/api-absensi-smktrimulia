@@ -231,8 +231,12 @@ class AbsensiController extends Controller
     public function hariIni()
     {
         $user = Auth::user();
+
         $riwayat = Absensi::where('siswa_id', $user->siswa->siswa_id)
-            ->where('tanggal', now()->toDateString())
+            ->whereHas('rencanaAbsensi', function ($query) {
+                $query->whereDate('tanggal', now()->toDateString());
+            })
+            ->with('rencanaAbsensi')
             ->first();
 
         if ($riwayat && $riwayat->bukti) {
