@@ -222,11 +222,31 @@ class AbsensiController extends Controller
     public function riwayat()
     {
         $user = Auth::user();
-        $riwayat = Absensi::where('siswa_id', $user->siswa->siswa_id)->get();
 
-        // return response()->json($riwayat);
+        // Ambil semua absensi siswa dengan relasi rencana_absensi dan tanggalnya
+        $riwayat = Absensi::where('siswa_id', $user->siswa->siswa_id)
+            ->with(['rencanaAbsensi' => function ($query) {
+                $query->select('rensi_id', 'tanggal', 'status_hari', 'keterangan');
+            }])
+            ->orderByDesc('absensi_id')
+            ->get();
+
+        foreach ($riwayat as $item) {
+            if ($item->rencanaAbsensi) {
+                $item->rencanaAbsensi->tanggal = \Carbon\Carbon::parse($item->rencanaAbsensi->tanggal)->format('d-m-Y');
+            }
+        }
+
+        // Tambahkan URL bukti jika ada
+        foreach ($riwayat as $item) {
+            if ($item->bukti) {
+                $item->bukti = asset('storage/' . $item->bukti);
+            }
+        }
+
         return ApiResponse::success($riwayat, 'Riwayat absensi berhasil diambil');
     }
+
 
     public function hariIni()
     {

@@ -6,6 +6,9 @@
 - [x] API - Menampilkan Absensi Siswa Berdasarkan Filter (Kelas, Tanggal, Status-[Hadir, Sakit, Izin, Terlambat, Alfa])
 - [ ] API - Export Data Absensi Kedalam CSV/Excel/PDF
 
+### Absensi
+- [ ] API -  Input Rencana Absensi Siswa
+
 ### Menu Akun
 - [x] API -  Mengelola Data Akun Siswa (Reset Password, Edit Data)
 
