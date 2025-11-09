@@ -58,6 +58,12 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
         Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
         Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
         Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
+        
+        Route::prefix('/rencana')->group(function () {
+            Route::get('/', [GurketController::class, 'getRencanaAbsensi']);
+            Route::post('/', [GurketController::class, 'tambahRencanaAbsensi']);
+        });
+
     });
 });
 
