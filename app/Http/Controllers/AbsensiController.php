@@ -136,37 +136,69 @@ class AbsensiController extends Controller
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
 
-        // Validasi waktu - tidak boleh absen pulang sebelum jam 15:00
         $currentTime = now();
-        $jamPulang = $currentTime->copy()->setTime(15, 0, 0); // 15:00:00
+        $jamPulang = $currentTime->copy()->setTime(15, 0, 0);
 
         if ($currentTime->lt($jamPulang)) {
             return ApiResponse::error('Absensi pulang hanya bisa dilakukan setelah jam 15:00', null, 422);
         }
 
+        // Ambil pengaturan lokasi & radius
         $pengaturan = Pengaturan::first();
-        $jarak = $this->hitungJarak($request->latitude, $request->longitude, $pengaturan->latitude, $pengaturan->longitude);
+        $jarak = $this->hitungJarak(
+            $request->latitude,
+            $request->longitude,
+            $pengaturan->latitude,
+            $pengaturan->longitude
+        );
 
         if ($jarak > $pengaturan->radius_meter) {
             return ApiResponse::error('Di luar radius absensi', ['distance' => $jarak], 422);
         }
 
-        // Cek apakah sudah ada absensi datang hari ini
-        $absensiHariIni = Absensi::where('siswa_id', $user->siswa->siswa_id)
-            ->where('tanggal', now()->toDateString())
+        // Cari rencana absensi hari ini
+        $rencana = RencanaAbsensi::whereDate('tanggal', now()->toDateString())
+            ->whereHas('kelas', function ($q) use ($user) {
+                $q->where('kelas_id', $user->siswa->kelas_id);
+            })
             ->first();
 
-        if (!$absensiHariIni) {
-            return ApiResponse::error('Anda belum melakukan absensi datang hari ini', null, 422);
+        if (!$rencana) {
+            return ApiResponse::error('Belum ada rencana absensi untuk hari ini', null, 422);
         }
 
-        // Update absensi pulang
-        $absensiHariIni->update([
+        // Cek apakah siswa sudah punya absensi datang
+        $absensi = Absensi::where('siswa_id', $user->siswa->siswa_id)
+            ->where('rensi_id', $rencana->rensi_id)
+            ->first();
+
+        if ($absensi) {
+            // update jam pulang jika sudah absen pulang
+            $absensi->update([
+                'jam_pulang' => now()->toTimeString(),
+                'latitude_pulang' => $request->latitude,
+                'longitude_pulang' => $request->longitude,
+            ]);
+
+            return ApiResponse::success($absensi->load('rencanaAbsensi'), 'Absensi pulang berhasil');
+        }
+
+        $newAbsensi = Absensi::create([
+            'siswa_id' => $user->siswa->siswa_id,
+            'rensi_id' => $rencana->rensi_id,
+            'jam_datang' => null,
             'jam_pulang' => now()->toTimeString(),
+            'latitude_pulang' => $request->latitude,
+            'longitude_pulang' => $request->longitude,
+            'status' => 'hadir',
+            'is_verif' => false,
         ]);
 
-        return ApiResponse::success($absensiHariIni, 'Absensi pulang berhasil');
+        return ApiResponse::success($newAbsensi->load('rencanaAbsensi'), 'Absensi pulang berhasil (otomatis dibuat)');
     }
+
+
+
 
     public function izinSakit(Request $request)
     {
