@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
 use App\Http\Requests\RencanaAbsensiRequest;
+use App\Http\Requests\UpdateSiswaRequest;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\Kelas;
@@ -217,35 +218,71 @@ class GurketController extends Controller
 
 
 
-    public function updateDataSiswa(Request $request)
+    // public function updateDataSiswa(Request $request)
+    // {
+    //     $request->validate([
+    //         'siswa_id' => 'required|exists:siswa,siswa_id',
+
+    //         // Siswa fields
+    //         'nis' => 'nullable|string|unique:siswa,nis,' . $request->input('siswa_id') . ',siswa_id',
+    //         'nama' => 'nullable|string',
+    //         'jenkel' => 'nullable|string|in:L,P',
+    //         'kelas_id' => 'nullable|exists:kelas,kelas_id',
+
+    //         // Akun fields
+    //         'username' => 'nullable|string|unique:akun,username,' . Siswa::find($request->input('siswa_id'))->akun_id . ',akun_id',
+    //         'password' => 'nullable|string|min:6',
+    //         'role' => 'nullable|string|in:siswa,gurket,walas,admin',
+
+    //         // Optional: update kelas yang sudah ada
+    //         'kelas.tingkat' => 'nullable|string',
+    //         'kelas.paralel' => 'nullable|string',
+    //         'kelas.thn_ajaran' => 'nullable|string',
+    //         'kelas.jurusan_id' => 'nullable|exists:jurusan,jurusan_id',
+    //         'kelas.walas_id' => 'nullable|exists:wali_kelas,walas_id',
+    //     ]);
+
+    //     $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
+
+    //     // Update Siswa
+    //     $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']));
+    //     $siswa->save();
+
+    //     // Update Akun
+    //     if ($siswa->akun) {
+    //         if ($request->has('username')) {
+    //             $siswa->akun->username = $request->input('username');
+    //         }
+    //         if ($request->has('password')) {
+    //             $siswa->akun->password = bcrypt($request->input('password'));
+    //         }
+    //         if ($request->has('role')) {
+    //             $siswa->akun->role = $request->input('role');
+    //         }
+    //         $siswa->akun->save();
+    //     }
+
+    //     // Update Kelas (jika data kelas sudah ada dan ingin diperbarui)
+    //     if ($siswa->kelas && $request->has('kelas')) {
+    //         $kelasData = $request->input('kelas');
+    //         $siswa->kelas->fill($kelasData);
+    //         $siswa->kelas->save();
+    //     }
+
+    //     // Reload dengan relasi terbaru
+    //     $siswa->load(['kelas', 'akun']);
+
+    //     return ApiResponse::success([
+    //         'siswa' => $siswa,
+    //     ], 'Data siswa berhasil diperbarui');
+    // }
+
+    public function updateDataSiswa(UpdateSiswaRequest $request)
     {
-        $request->validate([
-            'siswa_id' => 'required|exists:siswa,siswa_id',
-
-            // Siswa fields
-            'nis' => 'nullable|string|unique:siswa,nis,' . $request->input('siswa_id') . ',siswa_id',
-            'nama' => 'nullable|string',
-            'jenkel' => 'nullable|string|in:L,P',
-            'kelas_id' => 'nullable|exists:kelas,kelas_id',
-
-            // Akun fields
-            'username' => 'nullable|string|unique:akun,username,' . Siswa::find($request->input('siswa_id'))->akun_id . ',akun_id',
-            'password' => 'nullable|string|min:6',
-            'role' => 'nullable|string|in:siswa,gurket,walas,admin',
-
-            // Optional: update kelas yang sudah ada
-            'kelas.tingkat' => 'nullable|string',
-            'kelas.paralel' => 'nullable|string',
-            'kelas.thn_ajaran' => 'nullable|string',
-            'kelas.jurusan_id' => 'nullable|exists:jurusan,jurusan_id',
-            'kelas.walas_id' => 'nullable|exists:wali_kelas,walas_id',
-        ]);
-
         $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
 
         // Update Siswa
-        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']));
-        $siswa->save();
+        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']))->save();
 
         // Update Akun
         if ($siswa->akun) {
@@ -261,14 +298,11 @@ class GurketController extends Controller
             $siswa->akun->save();
         }
 
-        // Update Kelas (jika data kelas sudah ada dan ingin diperbarui)
+        // Update Kelas jika ada input kelas
         if ($siswa->kelas && $request->has('kelas')) {
-            $kelasData = $request->input('kelas');
-            $siswa->kelas->fill($kelasData);
-            $siswa->kelas->save();
+            $siswa->kelas->fill($request->input('kelas'))->save();
         }
 
-        // Reload dengan relasi terbaru
         $siswa->load(['kelas', 'akun']);
 
         return ApiResponse::success([
