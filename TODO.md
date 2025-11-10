@@ -7,7 +7,7 @@
 - [ ] API - Export Data Absensi Kedalam CSV/Excel/PDF
 
 ### Absensi
-- [ ] API -  Input Rencana Absensi Siswa
+- [x] API -  Input Rencana Absensi Siswa
 
 ### Menu Akun
 - [x] API -  Mengelola Data Akun Siswa (Reset Password, Edit Data)
