@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Helpers\ApiResponse; // <-- sesuaikan jika ApiResponse ada di namespace lain
+use App\Helpers\ApiResponse;
 
 class AbsensiRequest extends FormRequest
 {
@@ -33,15 +33,8 @@ class AbsensiRequest extends FormRequest
         ];
     }
 
-    /**
-     * Override failedValidation agar response konsisten dengan ApiResponse.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @throws \Illuminate\Http\Exceptions\HttpResponseException
-     */
     protected function failedValidation(Validator $validator)
     {
-        // Jika ApiResponse::error mengembalikan instance Response, tinggal lempar langsung
         throw new HttpResponseException(
             ApiResponse::error('Validasi gagal', $validator->errors(), 422)
         );

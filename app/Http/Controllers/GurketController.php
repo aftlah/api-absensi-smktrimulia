@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
+use App\Http\Requests\RencanaAbsensiRequest;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
 use App\Models\Kelas;
@@ -216,7 +217,7 @@ class GurketController extends Controller
 
 
 
-    public function update(Request $request)
+    public function updateDataSiswa(Request $request)
     {
         $request->validate([
             'siswa_id' => 'required|exists:siswa,siswa_id',
@@ -295,14 +296,8 @@ class GurketController extends Controller
         return ApiResponse::success($rencanaAbsensi, 'Data rencana absensi berhasil diambil');
     }
 
-    public function tambahRencanaAbsensi(Request $request)
+    public function tambahRencanaAbsensi(RencanaAbsensiRequest $request)
     {
-        $request->validate([
-            'tanggal' => 'required|date',
-            'status_hari' => 'required|string|in:hari_kerja,libur',
-            'keterangan' => 'nullable|string',
-            'kelas_id' => 'required|exists:kelas,kelas_id',
-        ]);
 
         $rencanaAbsensi = RencanaAbsensi::create($request->all());
 
