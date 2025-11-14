@@ -313,7 +313,7 @@ class GurketController extends Controller
 
     public function getRencanaAbsensi()
     {
-        $rencanaAbsensi = RencanaAbsensi::with('kelas')->get()->map(function ($item) {
+        $rencanaAbsensi = RencanaAbsensi::with(['kelas.jurusan'])->get()->map(function ($item) {
             return [
                 'rencana_id' => $item->rencana_id,
                 'tanggal' => $item->tanggal,
@@ -323,6 +323,10 @@ class GurketController extends Controller
                     'kelas_id' => $item->kelas->kelas_id,
                     'tingkat' => $item->kelas->tingkat,
                     'paralel' => $item->kelas->paralel,
+                    'jurusan' => $item->kelas->jurusan ? [
+                        'jurusan_id' => $item->kelas->jurusan->jurusan_id,
+                        'nama_jurusan' => $item->kelas->jurusan->nama_jurusan,
+                    ] : null,
                 ] : null,
             ];
         });
