@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
 
         Admin::firstOrCreate(
             ['nip' => 'ADM001'],
-            ['nama' => 'Administrator', 'akun_id' => $adminAkun->akun_id]
+            ['nama' => 'Kepala Sekolah (Administrator)', 'akun_id' => $adminAkun->akun_id]
         );
 
         /** 🔹 3. Guru Piket */

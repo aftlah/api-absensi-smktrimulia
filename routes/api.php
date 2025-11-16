@@ -30,6 +30,9 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
     Route::get('/admin/rekap', [AdminController::class, 'rekap']);
+    // Pengaturan sistem
+    Route::get('/admin/pengaturan', [AdminController::class, 'getPengaturan']);
+    Route::put('/admin/pengaturan', [AdminController::class, 'updatePengaturan']);
 });
 
 // Admin, gurket & wali kelas
@@ -38,12 +41,23 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::get('/hadir-hariini', [DashboardController::class, 'hadirHariIni']);
     Route::get('/terlambat-hariini', [DashboardController::class, 'terlambatHariIni']);
     Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
+    Route::get('/izin-hariini', [DashboardController::class, 'izinHariIni']);
+    Route::get('/sakit-hariini', [DashboardController::class, 'sakitHariIni']);
     Route::get('/guru/rekap', [GurketController::class, 'rekap']);
+
+    // Utility
+    Route::get('/utility/kelas', [UtillityController::class, 'getListKelas']);
+});
+
+// Semua role (termasuk siswa) butuh membaca pengaturan
+Route::middleware(['auth:api', 'role:admin,gurket,walas,siswa'])->group(function () {
+    Route::get('/pengaturan', [AdminController::class, 'getPengaturan']);
 });
 
 // Hanya guru piket & wali kelas
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GurketController::class, 'laporan']);
+    Route::get('/walas/info', [GurketController::class, 'walasInfo']);
     Route::post('/import-siswa', [GurketController::class, 'importSiswa']);
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
 
@@ -70,4 +84,9 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
 
 Route::prefix('utillity')->group(function () {
     Route::get('/getListKelas', [UtillityController::class, 'getListKelas']);
+});
+
+// testing /api
+Route::get('/', function () {
+    return response()->json(['message' => 'Hello World!']);
 });

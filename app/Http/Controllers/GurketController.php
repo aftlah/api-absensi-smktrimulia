@@ -11,6 +11,7 @@ use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\RencanaAbsensi;
 use App\Models\Siswa;
+use App\Models\WaliKelas;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -126,8 +127,10 @@ class GurketController extends Controller
 
     public function showAbsensiSiswa(Request $request)
     {
+        $user = Auth::user();
         $kelasId = $request->query('kelas_id');
         $tanggal = $request->query('tanggal');
+        $status = $request->query('status');
 
         $tanggal = $tanggal
             ? Carbon::parse($tanggal)->toDateString()
@@ -139,11 +142,28 @@ class GurketController extends Controller
                 $q->whereDate('tanggal', $tanggal);
             });
 
-        // Jika ada filter kelas, tambahkan kondisi
-        if (!empty($kelasId)) {
+        // Bila role walas, force filter by kelas yang diampu
+        if ($user && $user->role === 'walas') {
+            $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
+            if ($walas && $walas->kelas) {
+                $kelasId = $walas->kelas->kelas_id; // override agar tidak bisa akses kelas lain
+                $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId);
+                });
+            }
+        } elseif (!empty($kelasId)) {
+            // Untuk gurket: boleh filter kelas bebas
             $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
                 $q->where('kelas_id', $kelasId);
             });
+        }
+
+        // Filter status bila disediakan
+        if (!empty($status)) {
+            $allowed = ['hadir', 'terlambat', 'izin', 'sakit', 'alfa'];
+            if (in_array(strtolower($status), $allowed)) {
+                $query->where('status', strtolower($status));
+            }
         }
 
         // Ambil data dan format hasilnya
@@ -182,6 +202,7 @@ class GurketController extends Controller
             'filter' => [
                 'kelas_id' => $kelasId ?? 'Semua',
                 'tanggal' => $tanggal,
+                'status' => $status ?? 'Semua',
             ],
             'absensi' => $absensi,
         ], 'Data absensi berhasil diambil');
@@ -315,7 +336,8 @@ class GurketController extends Controller
     {
         $rencanaAbsensi = RencanaAbsensi::with(['kelas.jurusan'])->get()->map(function ($item) {
             return [
-                'rencana_id' => $item->rencana_id,
+                // 'rencana_id' => $item->rencana_id,
+                'rencana_id' => $item->rensi_id,
                 'tanggal' => $item->tanggal,
                 'status_hari' => $item->status_hari,
                 'keterangan' => $item->keterangan,
@@ -342,5 +364,41 @@ class GurketController extends Controller
         return ApiResponse::success([
             'rencana' => $rencanaAbsensi,
         ], 'Data rencana absensi berhasil ditambahkan');
+    }
+
+    /**
+     * Info wali kelas: kelas yang diampu oleh akun walas saat ini
+     */
+    public function walasInfo()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'walas') {
+            return ApiResponse::error('Akses khusus wali kelas', 403);
+        }
+
+        $walas = WaliKelas::with('kelas.jurusan')->where('akun_id', $user->akun_id)->first();
+        if (!$walas || !$walas->kelas) {
+            return ApiResponse::error('Wali kelas tidak memiliki kelas yang diampu', 404);
+        }
+
+        $kelas = $walas->kelas;
+        $label = sprintf(
+            'Kelas %s %s %s',
+            $kelas->tingkat ?? '-',
+            $kelas->jurusan->nama_jurusan ?? '-',
+            $kelas->paralel ?? '-'
+        );
+
+        return ApiResponse::success([
+            'walas_id' => $walas->walas_id,
+            'kelas_id' => $kelas->kelas_id,
+            'tingkat' => $kelas->tingkat,
+            'paralel' => $kelas->paralel,
+            'jurusan' => $kelas->jurusan ? [
+                'jurusan_id' => $kelas->jurusan->jurusan_id,
+                'nama_jurusan' => $kelas->jurusan->nama_jurusan,
+            ] : null,
+            'kelas_label' => $label,
+        ], 'Info wali kelas berhasil diambil');
     }
 }

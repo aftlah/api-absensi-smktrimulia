@@ -41,6 +41,21 @@ class AbsensiController extends Controller
         }
 
         $pengaturan = Pengaturan::first();
+        if (!$pengaturan) {
+            return ApiResponse::error('Pengaturan sekolah belum tersedia', null, 422);
+        }
+
+        // Validasi waktu jam masuk
+        $currentTime = now();
+        $jamMasukToday = \Carbon\Carbon::parse($pengaturan->jam_masuk)->setDate(
+            $currentTime->year,
+            $currentTime->month,
+            $currentTime->day
+        );
+
+        if ($currentTime->lt($jamMasukToday)) {
+            return ApiResponse::error('Absensi datang hanya bisa dilakukan setelah jam ' . $jamMasukToday->format('H:i'), null, 422);
+        }
         $jarak = $this->hitungJarak(
             $request->latitude,
             $request->longitude,
@@ -56,7 +71,7 @@ class AbsensiController extends Controller
         $hariIni = now()->toDateString();
         $rencana = RencanaAbsensi::whereDate('tanggal', $hariIni)
             ->where('kelas_id', $user->siswa->kelas_id)
-            ->first();
+            ->first(); 
 
         if (!$rencana) {
             return ApiResponse::error('Belum ada rencana absensi untuk hari ini', null, 422);
@@ -72,13 +87,21 @@ class AbsensiController extends Controller
             return ApiResponse::error('Kamu sudah absen hari ini', null, 422);
         }
 
+        // Tentukan status (terlambat jika melebihi toleransi_telat dari jam_masuk)
+        $status = 'hadir';
+        $toleransiMenit = (int) ($pengaturan->toleransi_telat ?? 0);
+        $batasTerlambat = (clone $jamMasukToday)->addMinutes($toleransiMenit);
+        if ($currentTime->gt($batasTerlambat)) {
+            $status = 'terlambat';
+        }
+
         $absensi = Absensi::create([
             'siswa_id'         => $user->siswa->siswa_id,
             'rensi_id'         => $rencana->rensi_id,
             'jam_datang'       => now()->toTimeString(),
             'latitude_datang'  => $request->latitude,
             'longitude_datang' => $request->longitude,
-            'status'           => 'hadir',
+            'status'           => $status,
             'is_verif'         => 0,
         ]);
 
@@ -86,23 +109,31 @@ class AbsensiController extends Controller
     }
 
 
-    // siswa absen pulang
+    // siswa absen pulang 
     public function absenPulang(AbsensiRequest $request)
     {
         $user = Auth::user();
         if ($user->role !== 'siswa') {
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
-
-        $currentTime = now();
-        $jamPulang = $currentTime->copy()->setTime(15, 0, 0);
-
-        if ($currentTime->lt($jamPulang)) {
-            return ApiResponse::error('Absensi pulang hanya bisa dilakukan setelah jam 15:00', null, 422);
+        
+        $pengaturan = Pengaturan::first();
+        if (!$pengaturan) {
+            return ApiResponse::error('Pengaturan sekolah belum tersedia', null, 422);
         }
 
-        // Ambil pengaturan lokasi & radius
-        $pengaturan = Pengaturan::first();
+        $currentTime = now();
+        $jamPulangToday = \Carbon\Carbon::parse($pengaturan->jam_pulang)->setDate(
+            $currentTime->year,
+            $currentTime->month,
+            $currentTime->day
+        );
+
+        if ($currentTime->lt($jamPulangToday)) {
+            return ApiResponse::error('Absensi pulang hanya bisa dilakukan setelah jam ' . $jamPulangToday->format('H:i'), null, 422);
+        }
+        
+        // Ambil pengaturan lokasi & radius 
         $jarak = $this->hitungJarak(
             $request->latitude,
             $request->longitude,
