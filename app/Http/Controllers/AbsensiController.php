@@ -71,7 +71,7 @@ class AbsensiController extends Controller
         $hariIni = now()->toDateString();
         $rencana = RencanaAbsensi::whereDate('tanggal', $hariIni)
             ->where('kelas_id', $user->siswa->kelas_id)
-            ->first(); 
+            ->first();
 
         if (!$rencana) {
             return ApiResponse::error('Belum ada rencana absensi untuk hari ini', null, 422);
@@ -116,7 +116,7 @@ class AbsensiController extends Controller
         if ($user->role !== 'siswa') {
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
-        
+
         $pengaturan = Pengaturan::first();
         if (!$pengaturan) {
             return ApiResponse::error('Pengaturan sekolah belum tersedia', null, 422);
@@ -132,7 +132,7 @@ class AbsensiController extends Controller
         if ($currentTime->lt($jamPulangToday)) {
             return ApiResponse::error('Absensi pulang hanya bisa dilakukan setelah jam ' . $jamPulangToday->format('H:i'), null, 422);
         }
-        
+
         // Ambil pengaturan lokasi & radius 
         $jarak = $this->hitungJarak(
             $request->latitude,
@@ -196,23 +196,35 @@ class AbsensiController extends Controller
             return ApiResponse::error('Hanya siswa yang bisa mengajukan izin sakit', null, 403);
         }
 
+        // Cari rencana absensi pada tanggal yang diminta
+        $rencana = RencanaAbsensi::whereDate('tanggal', $request->tanggal)
+            ->where('kelas_id', $user->siswa->kelas_id)
+            ->first();
+
+        if (!$rencana) {
+            return ApiResponse::error('Tidak ada rencana absensi untuk tanggal tersebut', null, 422);
+        }
+
+        // Cek apakah sudah ada absensi untuk rencana ini
         $existingAbsensi = Absensi::where('siswa_id', $user->siswa->siswa_id)
-            ->where('tanggal', $request->tanggal)
+            ->where('rensi_id', $rencana->rensi_id)
             ->first();
 
         if ($existingAbsensi) {
             return ApiResponse::error('Anda sudah memiliki catatan absensi pada tanggal tersebut', null, 422);
         }
 
-        $path = $request->file('bukti')->store('izin_sakit', 'public');
+        $path = null;
+        if ($request->hasFile('bukti') && $request->file('bukti')->isValid()) {
+            $path = $request->file('bukti')->store('izin_sakit', 'public');
+        }
 
         $absensi = Absensi::create([
-            'siswa_id' => $user->siswa->siswa_id,
-            'tanggal' => $request->tanggal,
-            'status' => 'pending',
-            'jenis_absen' => $request->jenis_absen,
-            'keterangan' => $request->keterangan,
-            'bukti' => $path,
+            'siswa_id'     => $user->siswa->siswa_id,
+            'status'       => $request->jenis_absen,
+            'rensi_id'     => $rencana->rensi_id,
+            'keterangan'   => $request->keterangan,
+            'bukti'        => $path,
         ]);
 
         return ApiResponse::success($absensi, 'Izin sakit berhasil diajukan');

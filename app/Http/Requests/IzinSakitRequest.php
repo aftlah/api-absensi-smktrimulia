@@ -18,10 +18,10 @@ class IzinSakitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tanggal' => 'required|date',
-            'keterangan' => 'required|string',
-            'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'jenis_absen' => 'required',
+            'tanggal'      => 'required|date',
+            'keterangan'   => 'required|string',
+            'bukti'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'jenis_absen'  => 'required',
         ];
     }
 
@@ -31,7 +31,7 @@ class IzinSakitRequest extends FormRequest
             'tanggal.required' => 'Tanggal izin sakit harus diisi',
             'tanggal.date' => 'Format tanggal tidak valid, gunakan YYYY-MM-DD',
             'keterangan.required' => 'Keterangan harus diisi',
-            'bukti.required' => 'Bukti harus diunggah',
+            // 'bukti.required' => 'Bukti harus diunggah',
             'bukti.file' => 'Bukti harus berupa file',
             'bukti.mimes' => 'Bukti harus berupa file dengan format: jpg, jpeg, png, atau pdf',
             'bukti.max' => 'Ukuran file bukti maksimal 2MB',
