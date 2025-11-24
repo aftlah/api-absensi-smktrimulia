@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Admin;
+use App\Models\GuruPiket;
+use App\Models\WaliKelas;
+use App\Models\Siswa;
+use App\Models\Akun;
 
 class AuthController extends Controller
 {
@@ -16,6 +22,22 @@ class AuthController extends Controller
             return ApiResponse::error('Username atau password salah', null, 401);
         }
 
+        $user = Auth::user();
+        $nama = null;
+        if ($user->role === 'admin') {
+            $adm = Admin::where('akun_id', $user->akun_id)->first();
+            $nama = $adm?->nama;
+        } elseif ($user->role === 'gurket') {
+            $gp = GuruPiket::where('akun_id', $user->akun_id)->first();
+            $nama = $gp?->nama;
+        } elseif ($user->role === 'walas') {
+            $wk = WaliKelas::where('akun_id', $user->akun_id)->first();
+            $nama = $wk?->nama;
+        } elseif ($user->role === 'siswa') {
+            $sw = Siswa::where('akun_id', $user->akun_id)->first();
+            $nama = $sw?->nama;
+        }
+
         return response()->json([
             'responseStatus' => true,
             'responseMessage' => 'Login berhasil',
@@ -25,11 +47,12 @@ class AuthController extends Controller
                 'expires_in' => Auth::factory()->getTTL() * 60
             ],
             'responseData' => [
-                'akun_id' => Auth::user()->akun_id,
-                'username' => Auth::user()->username,
-                'role' => Auth::user()->role,
-                'created_at' => Auth::user()->created_at,
-                'updated_at' => Auth::user()->updated_at
+                'akun_id' => $user->akun_id,
+                'username' => $user->username,
+                'role' => $user->role,
+                'nama' => $nama,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at
             ]
         ]);
     }
@@ -41,6 +64,63 @@ class AuthController extends Controller
     {
         // return response()->json(Auth::user());
         return ApiResponse::success(Auth::user(), 'User berhasil diambil');
+    }
+
+    public function profil()
+    {
+        $user = Auth::user();
+        $nama = null;
+        if ($user->role === 'admin') {
+            $adm = Admin::where('akun_id', $user->akun_id)->first();
+            $nama = $adm?->nama;
+        } elseif ($user->role === 'gurket') {
+            $gp = GuruPiket::where('akun_id', $user->akun_id)->first();
+            $nama = $gp?->nama;
+        } elseif ($user->role === 'walas') {
+            $wk = WaliKelas::where('akun_id', $user->akun_id)->first();
+            $nama = $wk?->nama;
+        } elseif ($user->role === 'siswa') {
+            $sw = Siswa::where('akun_id', $user->akun_id)->first();
+            $nama = $sw?->nama;
+        }
+
+        return response()->json([
+            'responseStatus' => true,
+            'responseMessage' => 'Profil berhasil diambil',
+            'responseData' => [
+                'akun_id' => $user->akun_id,
+                'username' => $user->username,
+                'role' => $user->role,
+                'nama' => $nama,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ],
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $user = Auth::user();
+        $validated = $request->validate([
+            'old_password' => 'required|string',
+            'new_password' => 'required|string|min:6',
+        ]);
+
+        $akun = Akun::where('akun_id', $user->akun_id)->first();
+        if (!$akun || !Hash::check($validated['old_password'], $akun->password)) {
+            return response()->json([
+                'responseStatus' => false,
+                'responseMessage' => 'Password lama tidak sesuai',
+            ], 422);
+        }
+
+        $akun->password = Hash::make($validated['new_password']);
+        $akun->save();
+
+        return response()->json([
+            'responseStatus' => true,
+            'responseMessage' => 'Password berhasil diubah',
+        ]);
     }
 
     /**

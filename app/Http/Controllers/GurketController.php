@@ -339,4 +339,33 @@ class GurketController extends Controller
             'kelas_label' => $label,
         ], 'Info wali kelas berhasil diambil');
     }
+
+    public function updateProfil(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || ($user->role !== 'gurket' && $user->role !== 'walas')) {
+            return ApiResponse::error('Role tidak diizinkan', 403);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($user->role === 'gurket') {
+            $model = \App\Models\GuruPiket::where('akun_id', $user->akun_id)->firstOrFail();
+        } else {
+            $model = \App\Models\WaliKelas::where('akun_id', $user->akun_id)->firstOrFail();
+        }
+
+        $model->nama = $request->input('nama');
+        $model->save();
+
+        return ApiResponse::success($model, 'Profil berhasil diperbarui');
+    }
 }
