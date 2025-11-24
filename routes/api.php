@@ -26,6 +26,9 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
         Route::get('/riwayat', [AbsensiController::class, 'riwayat']);
         Route::get('/hariini', [AbsensiController::class, 'hariIni']);
     });
+
+    // Detail profil siswa
+    Route::get('/getDetailProfilSiswa', [UtillityController::class, 'getDetailProfilSiswa']);
 });
 
 // Hanya admin
