@@ -107,6 +107,7 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::prefix('kelola-datasiswa')->group(function () {
         Route::get('/', [GurketController::class, 'getDataSiswa']);
         Route::post('/update', [GurketController::class, 'updateDataSiswa']);
+        Route::post('/create', [GurketController::class, 'createDataSiswa']);
     });
 
 

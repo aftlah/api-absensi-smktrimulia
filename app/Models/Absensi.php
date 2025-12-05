@@ -23,6 +23,7 @@ class Absensi extends Model
         'status',
         'is_verif',
         'bukti',
+        'keterangan',
     ];
 
     public function siswa()

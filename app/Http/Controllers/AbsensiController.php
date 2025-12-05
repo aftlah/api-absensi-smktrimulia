@@ -65,7 +65,10 @@ class AbsensiController extends Controller
 
 
         if ($jarak > $pengaturan->radius_meter) {
-            return ApiResponse::error('Di luar radius absensi', ['distance' => $jarak], 422);
+            return ApiResponse::error('Di luar radius absensi', [
+                'distance' => (int) round($jarak),
+                'radius' => (int) $pengaturan->radius_meter,
+            ], 422);
         }
 
         $hariIni = now()->toDateString();
@@ -142,7 +145,10 @@ class AbsensiController extends Controller
         );
 
         if ($jarak > $pengaturan->radius_meter) {
-            return ApiResponse::error('Di luar radius absensi', ['distance' => $jarak], 422);
+            return ApiResponse::error('Di luar radius absensi', [
+                'distance' => (int) round($jarak),
+                'radius' => (int) $pengaturan->radius_meter,
+            ], 422);
         }
 
         // Cari rencana absensi hari ini

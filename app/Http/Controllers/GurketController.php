@@ -11,6 +11,7 @@ use App\Models\Absensi;
 use App\Models\Kelas;
 use App\Models\RencanaAbsensi;
 use App\Models\Siswa;
+use App\Models\Akun;
 use App\Models\WaliKelas;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -187,6 +188,7 @@ class GurketController extends Controller
                 'jam_datang' => $item->jam_datang,
                 'jam_pulang' => $item->jam_pulang,
                 'status'     => $item->status,
+                'keterangan' => $item->keterangan ?? null,
                 'latitude_datang' => $item->latitude_datang ?? null,
                 'longitude_datang' => $item->longitude_datang ?? null,
                 'latitude_pulang' => $item->latitude_pulang ?? null,
@@ -267,6 +269,35 @@ class GurketController extends Controller
         return ApiResponse::success([
             'siswa' => $siswa,
         ], 'Data siswa berhasil diperbarui');
+    }
+
+    public function createDataSiswa(Request $request)
+    {
+        $request->validate([
+            'nis' => 'required|string|unique:siswa,nis',
+            'nama' => 'required|string',
+            'jenkel' => 'required|in:L,P',
+            'kelas_id' => 'required|exists:kelas,kelas_id',
+        ]);
+
+        $username = $request->input('nis');
+        $akun = Akun::create([
+            'username' => $username,
+            'password' => bcrypt('TRI12345'),
+            'role' => 'siswa',
+        ]);
+
+        $siswa = Siswa::create([
+            'nis' => $request->input('nis'),
+            'nama' => $request->input('nama'),
+            'jenkel' => $request->input('jenkel'),
+            'kelas_id' => $request->input('kelas_id'),
+            'akun_id' => $akun->akun_id,
+        ]);
+
+        $siswa->load(['kelas', 'akun']);
+
+        return ApiResponse::success($siswa, 'Siswa berhasil ditambahkan');
     }
 
 
