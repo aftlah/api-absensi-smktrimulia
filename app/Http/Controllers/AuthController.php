@@ -17,6 +17,7 @@ class AuthController extends Controller
     public function Login(Request $request)
     {
         $credentials = $request->only('username', 'password');
+        // dd($credentials);
 
         if (!$token = Auth::attempt($credentials)) {
             return ApiResponse::error('Username atau password salah', null, 401);

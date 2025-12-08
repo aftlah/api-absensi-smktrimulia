@@ -53,9 +53,9 @@ class AbsensiController extends Controller
             $currentTime->day
         );
 
-        if ($currentTime->lt($jamMasukToday)) {
-            return ApiResponse::error('Absensi datang hanya bisa dilakukan setelah jam ' . $jamMasukToday->format('H:i'), null, 422);
-        }
+        // if ($currentTime->lt($jamMasukToday)) {
+        //     return ApiResponse::error('Absensi datang hanya bisa dilakukan setelah jam ' . $jamMasukToday->format('H:i'), null, 422);
+        // }
         $jarak = $this->hitungJarak(
             $request->latitude,
             $request->longitude,
