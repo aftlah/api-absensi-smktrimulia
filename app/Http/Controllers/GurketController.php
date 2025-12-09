@@ -303,24 +303,27 @@ class GurketController extends Controller
 
     public function getRencanaAbsensi()
     {
-        $rencanaAbsensi = RencanaAbsensi::with(['kelas.jurusan'])->get()->map(function ($item) {
-            return [
-                // 'rencana_id' => $item->rencana_id,
-                'rencana_id' => $item->rensi_id,
-                'tanggal' => $item->tanggal,
-                'status_hari' => $item->status_hari,
-                'keterangan' => $item->keterangan,
-                'kelas' => $item->kelas ? [
-                    'kelas_id' => $item->kelas->kelas_id,
-                    'tingkat' => $item->kelas->tingkat,
-                    'paralel' => $item->kelas->paralel,
-                    'jurusan' => $item->kelas->jurusan ? [
-                        'jurusan_id' => $item->kelas->jurusan->jurusan_id,
-                        'nama_jurusan' => $item->kelas->jurusan->nama_jurusan,
+        $rencanaAbsensi = RencanaAbsensi::with(['kelas.jurusan'])
+            ->whereDate('tanggal', '>=', Carbon::today()->toDateString())
+            ->get()
+            ->map(function ($item) {
+                return [
+                    // 'rencana_id' => $item->rencana_id,
+                    'rencana_id' => $item->rensi_id,
+                    'tanggal' => $item->tanggal,
+                    'status_hari' => $item->status_hari,
+                    'keterangan' => $item->keterangan,
+                    'kelas' => $item->kelas ? [
+                        'kelas_id' => $item->kelas->kelas_id,
+                        'tingkat' => $item->kelas->tingkat,
+                        'paralel' => $item->kelas->paralel,
+                        'jurusan' => $item->kelas->jurusan ? [
+                            'jurusan_id' => $item->kelas->jurusan->jurusan_id,
+                            'nama_jurusan' => $item->kelas->jurusan->nama_jurusan,
+                        ] : null,
                     ] : null,
-                ] : null,
-            ];
-        });
+                ];
+            });
 
         return ApiResponse::success($rencanaAbsensi, 'Data rencana absensi berhasil diambil');
     }
