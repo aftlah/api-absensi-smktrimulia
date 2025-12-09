@@ -33,43 +33,45 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
 
 // Hanya admin
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
-    Route::get('/admin/rekap', [AdminController::class, 'rekap']);
-    // Pengaturan sistem
-    Route::get('/admin/pengaturan', [AdminController::class, 'getPengaturan']);
-    Route::put('/admin/profil', [AdminController::class, 'updateAdminProfile']);
-    Route::put('/admin/pengaturan', [AdminController::class, 'updatePengaturan']);
-    // Jurusan
-    Route::get('/admin/jurusan', [AdminController::class, 'getJurusan']);
-    Route::post('/admin/jurusan', [AdminController::class, 'createJurusan']);
-    Route::put('/admin/jurusan/{jurusan}', [AdminController::class, 'updateJurusan']);
-    Route::delete('/admin/jurusan/{jurusan}', [AdminController::class, 'deleteJurusan']);
-    // Kelas
-    Route::get('/admin/kelas', [AdminController::class, 'getKelas']);
-    Route::post('/admin/kelas', [AdminController::class, 'createKelas']);
-    Route::put('/admin/kelas/{kelas}', [AdminController::class, 'updateKelas']);
-    Route::delete('/admin/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
-    // Wali Kelas list
-    Route::get('/admin/walas', [AdminController::class, 'getWalas']);
-    // Wali Kelas CRUD
-    Route::get('/admin/wali-kelas', [AdminController::class, 'getWaliKelas']);
-    Route::post('/admin/wali-kelas', [AdminController::class, 'createWaliKelas']);
-    Route::put('/admin/wali-kelas/{walas}', [AdminController::class, 'updateWaliKelas']);
-    Route::delete('/admin/wali-kelas/{walas}', [AdminController::class, 'deleteWaliKelas']);
-    // Akun untuk wali kelas
-    Route::get('/admin/akun-walas', [AdminController::class, 'getAkunWalas']);
-    // Guru Piket CRUD
-    Route::get('/admin/guru-piket', [AdminController::class, 'getGuruPiket']);
-    Route::post('/admin/guru-piket', [AdminController::class, 'createGuruPiket']);
-    Route::put('/admin/guru-piket/{gurket}', [AdminController::class, 'updateGuruPiket']);
-    Route::delete('/admin/guru-piket/{gurket}', [AdminController::class, 'deleteGuruPiket']);
-    Route::get('/admin/akun-gurket', [AdminController::class, 'getAkunGuruPiket']);
 
-    // Jadwal Piket CRUD
-    Route::get('/admin/jadwal-piket', [AdminController::class, 'getJadwalPiket']);
-    Route::post('/admin/jadwal-piket', [AdminController::class, 'createJadwalPiket']);
-    Route::put('/admin/jadwal-piket/{jadwal}', [AdminController::class, 'updateJadwalPiket']);
-    Route::delete('/admin/jadwal-piket/{jadwal}', [AdminController::class, 'deleteJadwalPiket']);
+    Route::prefix('/admin')->group(function () {
+        Route::get('/rekap', [AdminController::class, 'rekap']);
+        // Pengaturan sistem
+        Route::get('/pengaturan', [AdminController::class, 'getPengaturan']);
+        Route::put('/profil', [AdminController::class, 'updateAdminProfile']);
+        Route::put('/pengaturan', [AdminController::class, 'updatePengaturan']);
+        // Jurusan
+        Route::get('/jurusan', [AdminController::class, 'getJurusan']);
+        Route::post('/jurusan', [AdminController::class, 'createJurusan']);
+        Route::put('/jurusan/{jurusan}', [AdminController::class, 'updateJurusan']);
+        Route::delete('/jurusan/{jurusan}', [AdminController::class, 'deleteJurusan']);
+        // Kelas
+        Route::get('/kelas', [AdminController::class, 'getKelas']);
+        Route::post('/kelas', [AdminController::class, 'createKelas']);
+        Route::put('/kelas/{kelas}', [AdminController::class, 'updateKelas']);
+        Route::delete('/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
+        // Wali Kelas list
+        Route::get('/walas', [AdminController::class, 'getWalas']);
+        // Wali Kelas CRUD
+        Route::get('/wali-kelas', [AdminController::class, 'getWaliKelas']);
+        Route::post('/wali-kelas', [AdminController::class, 'createWaliKelas']);
+        Route::put('/wali-kelas/{walas}', [AdminController::class, 'updateWaliKelas']);
+        Route::delete('/wali-kelas/{walas}', [AdminController::class, 'deleteWaliKelas']);
+        // Akun untuk wali kelas
+        Route::get('/akun-walas', [AdminController::class, 'getAkunWalas']);
+        // Guru Piket CRUD
+        Route::get('/guru-piket', [AdminController::class, 'getGuruPiket']);
+        Route::post('/guru-piket', [AdminController::class, 'createGuruPiket']);
+        Route::put('/guru-piket/{gurket}', [AdminController::class, 'updateGuruPiket']);
+        Route::delete('/guru-piket/{gurket}', [AdminController::class, 'deleteGuruPiket']);
+        Route::get('/akun-gurket', [AdminController::class, 'getAkunGuruPiket']);
 
+        // Jadwal Piket CRUD
+        Route::get('/jadwal-piket', [AdminController::class, 'getJadwalPiket']);
+        Route::post('/jadwal-piket', [AdminController::class, 'createJadwalPiket']);
+        Route::put('/jadwal-piket/{jadwal}', [AdminController::class, 'updateJadwalPiket']);
+        Route::delete('/jadwal-piket/{jadwal}', [AdminController::class, 'deleteJadwalPiket']);
+    });
 });
 
 
@@ -116,21 +118,15 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
         Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
         Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
         Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
-        
+
         Route::prefix('/rencana')->group(function () {
             Route::get('/', [GurketController::class, 'getRencanaAbsensi']);
             Route::post('/', [GurketController::class, 'tambahRencanaAbsensi']);
         });
-
     });
 });
 
 
 Route::prefix('utillity')->group(function () {
     Route::get('/getListKelas', [UtillityController::class, 'getListKelas']);
-});
-
-// testing /api
-Route::get('/', function () {
-    return response()->json(['message' => 'Hello World!']);
 });
