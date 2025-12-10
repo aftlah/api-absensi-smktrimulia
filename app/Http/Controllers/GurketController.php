@@ -54,27 +54,7 @@ class GurketController extends Controller
     }
 
 
-    public function importSiswa(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
-        ]);
 
-        try {
-            $importer = new ImportHelper();
-            $hasilImport = $importer->importSiswa($request->file('file'));
-
-            return ApiResponse::success([
-                'kelas_terdaftar' => $hasilImport['kelas_terdaftar'],
-                'data_siswa' => $hasilImport['data_siswa'],
-            ], 'Data siswa berhasil diimpor');
-        } catch (\Exception $e) {
-            return ApiResponse::error(
-                'Gagal mengimpor data siswa',
-                $e->getMessage()
-            );
-        }
-    }
 
     public function getSiswaIzinSakit()
     {
@@ -210,97 +190,6 @@ class GurketController extends Controller
     }
 
 
-
-    public function getDataSiswa()
-    {
-        $siswa = Siswa::with(['kelas', 'akun'])->get()->map(function ($item) {
-            return [
-                'siswa_id' => $item->siswa_id,
-                'nis'      => $item->nis,
-                'nama'     => $item->nama,
-                'jenkel'   => $item->jenkel,
-
-                'kelas'    => $item->kelas ? [
-                    'kelas_id' => $item->kelas->kelas_id,
-                    'tingkat'  => $item->kelas->tingkat,
-                    'jurusan'  => $item->kelas->jurusan,
-                    'paralel'  => $item->kelas->paralel,
-                ] : null,
-
-                'akun'     => $item->akun ? [
-                    'user_id'  => $item->akun->user_id,
-                    'username' => $item->akun->username,
-                    'role'     => $item->akun->role,
-                ] : null,
-            ];
-        });
-
-        return ApiResponse::success($siswa, 'Data siswa berhasil diambil');
-    }
-
-    public function updateDataSiswa(UpdateSiswaRequest $request)
-    {
-        $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
-
-        // Update Siswa
-        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']))->save();
-
-        // Update Akun
-        if ($siswa->akun) {
-            if ($request->has('username')) {
-                $siswa->akun->username = $request->input('username');
-            }
-            if ($request->has('password')) {
-                $siswa->akun->password = bcrypt($request->input('password'));
-            }
-            if ($request->has('role')) {
-                $siswa->akun->role = $request->input('role');
-            }
-            $siswa->akun->save();
-        }
-
-        // Update Kelas jika ada input kelas
-        if ($siswa->kelas && $request->has('kelas')) {
-            $siswa->kelas->fill($request->input('kelas'))->save();
-        }
-
-        $siswa->load(['kelas', 'akun']);
-
-        return ApiResponse::success([
-            'siswa' => $siswa,
-        ], 'Data siswa berhasil diperbarui');
-    }
-
-    public function createDataSiswa(Request $request)
-    {
-        $request->validate([
-            'nis' => 'required|string|unique:siswa,nis',
-            'nama' => 'required|string',
-            'jenkel' => 'required|in:L,P',
-            'kelas_id' => 'required|exists:kelas,kelas_id',
-        ]);
-
-        $username = $request->input('nis');
-        $akun = Akun::create([
-            'username' => $username,
-            'password' => bcrypt('TRI12345'),
-            'role' => 'siswa',
-        ]);
-
-        $siswa = Siswa::create([
-            'nis' => $request->input('nis'),
-            'nama' => $request->input('nama'),
-            'jenkel' => $request->input('jenkel'),
-            'kelas_id' => $request->input('kelas_id'),
-            'akun_id' => $akun->akun_id,
-        ]);
-
-        $siswa->load(['kelas', 'akun']);
-
-        return ApiResponse::success($siswa, 'Siswa berhasil ditambahkan');
-    }
-
-
     public function getRencanaAbsensi()
     {
         $rencanaAbsensi = RencanaAbsensi::with(['kelas.jurusan'])
@@ -330,12 +219,74 @@ class GurketController extends Controller
 
     public function tambahRencanaAbsensi(RencanaAbsensiRequest $request)
     {
+        $mode = $request->input('mode', 'single');
+        $tanggalMulai = Carbon::parse($request->input('tanggal'));
+        $keterangan = $request->input('keterangan');
 
-        $rencanaAbsensi = RencanaAbsensi::create($request->all());
+        if ($mode === 'week') {
+            $kelasAll = Kelas::select('kelas_id')->get();
+            for ($i = 0; $i <= 7; $i++) {
+                $tanggal = $tanggalMulai->copy()->addDays($i);
+                $dayOfWeek = $tanggal->dayOfWeek;
+                $statusHari = ($dayOfWeek === Carbon::SATURDAY || $dayOfWeek === Carbon::SUNDAY)
+                    ? 'libur'
+                    : 'normal';
+                foreach ($kelasAll as $kelas) {
+                    RencanaAbsensi::updateOrCreate(
+                        [
+                            'kelas_id' => $kelas->kelas_id,
+                            'tanggal' => $tanggal->toDateString(),
+                        ],
+                        [
+                            'status_hari' => $statusHari,
+                            'keterangan' => $keterangan,
+                        ]
+                    );
+                }
+            }
 
-        return ApiResponse::success([
-            'rencana' => $rencanaAbsensi,
-        ], 'Data rencana absensi berhasil ditambahkan');
+            return ApiResponse::success(null, 'Rencana absensi mingguan untuk semua kelas berhasil dibuat');
+        }
+
+        $kelasAll = Kelas::select('kelas_id')->get();
+        foreach ($kelasAll as $kelas) {
+            RencanaAbsensi::updateOrCreate(
+                [
+                    'kelas_id' => $kelas->kelas_id,
+                    'tanggal' => $tanggalMulai->toDateString(),
+                ],
+                [
+                    'status_hari' => 'normal',
+                    'keterangan' => $keterangan,
+                ]
+            );
+        }
+
+        return ApiResponse::success(null, 'Rencana absensi harian untuk semua kelas berhasil dibuat');
+    }
+
+    public function updateRencanaStatusHari(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'tanggal' => 'required|date',
+            'status_hari' => 'required|in:normal,libur,acara khusus',
+            'keterangan' => 'nullable|string',
+        ]);
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
+
+        $tanggal = Carbon::parse($request->input('tanggal'))->toDateString();
+        $status = $request->input('status_hari');
+        $ket = $request->input('keterangan');
+
+        $update = ['status_hari' => $status];
+        if ($request->has('keterangan')) {
+            $update['keterangan'] = $ket;
+        }
+        RencanaAbsensi::whereDate('tanggal', $tanggal)->update($update);
+
+        return ApiResponse::success(null, 'Status hari rencana absensi berhasil diperbarui');
     }
 
     /**

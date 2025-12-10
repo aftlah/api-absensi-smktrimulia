@@ -16,6 +16,10 @@ use App\Models\JadwalPiket;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin as AdminModel;
 use Carbon\Carbon;
+use App\Models\Siswa;
+use App\Helpers\ApiResponse;
+use App\Helpers\ImportHelper;
+use App\Http\Requests\UpdateSiswaRequest;
 
 class AdminController extends Controller
 {
@@ -382,6 +386,114 @@ class AdminController extends Controller
         return response()->json([
             'akun' => $akun,
         ]);
+    }
+
+    public function importSiswa(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
+        ]);
+
+        try {
+            $importer = new ImportHelper();
+            $hasilImport = $importer->importSiswa($request->file('file'));
+
+            return ApiResponse::success([
+                'kelas_terdaftar' => $hasilImport['kelas_terdaftar'],
+                'data_siswa' => $hasilImport['data_siswa'],
+            ], 'Data siswa berhasil diimpor');
+        } catch (\Exception $e) {
+            return ApiResponse::error(
+                'Gagal mengimpor data siswa',
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function getDataSiswa()
+    {
+        $siswa = Siswa::with(['kelas', 'akun'])->get()->map(function ($item) {
+            return [
+                'siswa_id' => $item->siswa_id,
+                'nis'      => $item->nis,
+                'nama'     => $item->nama,
+                'jenkel'   => $item->jenkel,
+
+                'kelas'    => $item->kelas ? [
+                    'kelas_id' => $item->kelas->kelas_id,
+                    'tingkat'  => $item->kelas->tingkat,
+                    'jurusan'  => $item->kelas->jurusan,
+                    'paralel'  => $item->kelas->paralel,
+                ] : null,
+
+                'akun'     => $item->akun ? [
+                    'user_id'  => $item->akun->user_id,
+                    'username' => $item->akun->username,
+                    'role'     => $item->akun->role,
+                ] : null,
+            ];
+        });
+
+        return ApiResponse::success($siswa, 'Data siswa berhasil diambil');
+    }
+
+    public function updateDataSiswa(UpdateSiswaRequest $request)
+    {
+        $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
+
+        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']))->save();
+
+        if ($siswa->akun) {
+            if ($request->has('username')) {
+                $siswa->akun->username = $request->input('username');
+            }
+            if ($request->has('password')) {
+                $siswa->akun->password = bcrypt($request->input('password'));
+            }
+            if ($request->has('role')) {
+                $siswa->akun->role = $request->input('role');
+            }
+            $siswa->akun->save();
+        }
+
+        if ($siswa->kelas && $request->has('kelas')) {
+            $siswa->kelas->fill($request->input('kelas'))->save();
+        }
+
+        $siswa->load(['kelas', 'akun']);
+
+        return ApiResponse::success([
+            'siswa' => $siswa,
+        ], 'Data siswa berhasil diperbarui');
+    }
+
+    public function createDataSiswa(Request $request)
+    {
+        $request->validate([
+            'nis' => 'required|string|unique:siswa,nis',
+            'nama' => 'required|string',
+            'jenkel' => 'required|in:L,P',
+            'kelas_id' => 'required|exists:kelas,kelas_id',
+        ]);
+
+        $username = $request->input('nis');
+        $akun = Akun::create([
+            'username' => $username,
+            'password' => bcrypt('TRI12345'),
+            'role' => 'siswa',
+        ]);
+
+        $siswa = Siswa::create([
+            'nis' => $request->input('nis'),
+            'nama' => $request->input('nama'),
+            'jenkel' => $request->input('jenkel'),
+            'kelas_id' => $request->input('kelas_id'),
+            'akun_id' => $akun->akun_id,
+        ]);
+
+        $siswa->load(['kelas', 'akun']);
+
+        return ApiResponse::success($siswa, 'Siswa berhasil ditambahkan');
     }
 
     /**

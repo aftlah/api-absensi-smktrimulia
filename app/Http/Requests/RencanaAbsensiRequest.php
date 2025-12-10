@@ -26,9 +26,8 @@ class RencanaAbsensiRequest extends FormRequest
     {
         return [
             'tanggal' => 'required|date',
-            'status_hari' => 'required|string',
             'keterangan' => 'nullable|string',
-            'kelas_id' => 'required|exists:kelas,kelas_id',
+            'mode' => 'nullable|in:single,week',
         ];
     }
 
@@ -36,9 +35,7 @@ class RencanaAbsensiRequest extends FormRequest
     {
         return [
             'tanggal.required' => 'Tanggal wajib diisi.',
-            'status_hari.required' => 'Status hari wajib diisi.',
-            'kelas_id.required' => 'Kelas ID wajib diisi.',
-            'kelas_id.exists' => 'Kelas ID tidak valid.',
+            'mode.in' => 'Mode tidak valid.',
         ];
     }
 

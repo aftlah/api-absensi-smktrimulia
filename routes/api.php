@@ -71,6 +71,13 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/jadwal-piket', [AdminController::class, 'createJadwalPiket']);
         Route::put('/jadwal-piket/{jadwal}', [AdminController::class, 'updateJadwalPiket']);
         Route::delete('/jadwal-piket/{jadwal}', [AdminController::class, 'deleteJadwalPiket']);
+
+        Route::post('/import-siswa', [AdminController::class, 'importSiswa']);
+        Route::prefix('/kelola-datasiswa')->group(function () {
+            Route::get('/', [AdminController::class, 'getDataSiswa']);
+            Route::post('/update', [AdminController::class, 'updateDataSiswa']);
+            Route::post('/create', [AdminController::class, 'createDataSiswa']);
+        });
     });
 });
 
@@ -101,16 +108,11 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas,siswa'])->group(function
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GurketController::class, 'laporan']);
     Route::get('/walas/info', [GurketController::class, 'walasInfo']);
-    Route::post('/import-siswa', [GurketController::class, 'importSiswa']);
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
 
     Route::put('/profil', [GurketController::class, 'updateProfil']);
 
-    Route::prefix('kelola-datasiswa')->group(function () {
-        Route::get('/', [GurketController::class, 'getDataSiswa']);
-        Route::post('/update', [GurketController::class, 'updateDataSiswa']);
-        Route::post('/create', [GurketController::class, 'createDataSiswa']);
-    });
+    Route::prefix('kelola-datasiswa')->group(function () {});
 
 
     Route::prefix('/absensi')->group(function () {
@@ -122,6 +124,7 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
         Route::prefix('/rencana')->group(function () {
             Route::get('/', [GurketController::class, 'getRencanaAbsensi']);
             Route::post('/', [GurketController::class, 'tambahRencanaAbsensi']);
+            Route::post('/update-status', [GurketController::class, 'updateRencanaStatusHari']);
         });
     });
 });
