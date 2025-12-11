@@ -20,6 +20,7 @@ use App\Models\Siswa;
 use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
 use App\Http\Requests\UpdateSiswaRequest;
+use App\Models\RiwayatKelas;
 
 class AdminController extends Controller
 {
@@ -79,7 +80,8 @@ class AdminController extends Controller
         $pengaturan = Pengaturan::first();
         if (!$pengaturan) {
             return response()->json([
-                'message' => 'Pengaturan belum tersedia'], 404);
+                'message' => 'Pengaturan belum tersedia'
+            ], 404);
         }
 
         return response()->json([
@@ -229,7 +231,7 @@ class AdminController extends Controller
             'walas_id' => $request->input('walas_id'),
         ]);
 
-        $kelas->load(['jurusan','walas']);
+        $kelas->load(['jurusan', 'walas']);
         return response()->json([
             'message' => 'Kelas berhasil ditambahkan',
             'kelas' => $kelas,
@@ -258,7 +260,7 @@ class AdminController extends Controller
         $kls->walas_id = $request->input('walas_id');
         $kls->save();
 
-        $kls->load(['jurusan','walas']);
+        $kls->load(['jurusan', 'walas']);
         return response()->json([
             'message' => 'Kelas berhasil diperbarui',
             'kelas' => $kls,
@@ -276,9 +278,60 @@ class AdminController extends Controller
 
     public function getWalas(Request $request)
     {
-        $walas = WaliKelas::select('walas_id','nip','nama')->get();
+        $walas = WaliKelas::select('walas_id', 'nip', 'nama')->get();
         return response()->json([
             'walas' => $walas,
+        ]);
+    }
+
+    /**
+     * RIWAYAT KELAS SISWA
+     */
+    public function getRiwayatKelas(Request $request)
+    {
+        $kelasId = $request->query('kelas_id');
+        $q = trim((string)$request->query('q', ''));
+
+        $query = RiwayatKelas::with(['siswa.kelas.jurusan', 'kelas.jurusan'])
+            ->when(!empty($kelasId), function ($qb) use ($kelasId) {
+                $qb->where('kelas_id', $kelasId);
+            })
+            ->when(!empty($q), function ($qb) use ($q) {
+                $qb->whereHas('siswa', function ($q2) use ($q) {
+                    $q2->where('nis', 'like', "%$q%")
+                        ->orWhere('nama', 'like', "%$q%");
+                });
+            })
+            ->orderByDesc('created_at');
+
+        $riwayat = $query->get()->map(function ($item) {
+            $siswa = $item->siswa;
+            $kelas = $item->kelas;
+            $jur = $kelas?->jurusan;
+            return [
+                'riwayat_kelas_id' => $item->riwayat_kelas_id,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'siswa' => $siswa ? [
+                    'siswa_id' => $siswa->siswa_id,
+                    'nis' => $siswa->nis,
+                    'nama' => $siswa->nama,
+                    'jenkel' => $siswa->jenkel,
+                ] : null,
+                'kelas' => $kelas ? [
+                    'kelas_id' => $kelas->kelas_id,
+                    'tingkat' => $kelas->tingkat,
+                    'paralel' => $kelas->paralel,
+                    'jurusan' => $jur ? [
+                        'jurusan_id' => $jur->jurusan_id,
+                        'nama_jurusan' => $jur->nama_jurusan,
+                    ] : null,
+                ] : null,
+            ];
+        });
+
+        return response()->json([
+            'riwayat' => $riwayat,
         ]);
     }
 
@@ -378,7 +431,7 @@ class AdminController extends Controller
 
     public function getAkunWalas(Request $request)
     {
-        $akun = Akun::where('role', 'walas')->select('akun_id','username','role')->get();
+        $akun = Akun::where('role', 'walas')->select('akun_id', 'username', 'role')->get();
         return response()->json([
             'akun' => $akun,
         ]);
@@ -588,7 +641,7 @@ class AdminController extends Controller
 
     public function getAkunGuruPiket(Request $request)
     {
-        $akun = Akun::where('role', 'gurket')->select('akun_id','username','role')->get();
+        $akun = Akun::where('role', 'gurket')->select('akun_id', 'username', 'role')->get();
         return response()->json([
             'akun' => $akun,
         ]);

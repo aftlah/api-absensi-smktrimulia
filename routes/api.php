@@ -50,6 +50,8 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/kelas', [AdminController::class, 'createKelas']);
         Route::put('/kelas/{kelas}', [AdminController::class, 'updateKelas']);
         Route::delete('/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
+        // Riwayat Kelas
+        Route::get('/riwayat-kelas', [AdminController::class, 'getRiwayatKelas']);
         // Wali Kelas list
         Route::get('/walas', [AdminController::class, 'getWalas']);
         // Wali Kelas CRUD
