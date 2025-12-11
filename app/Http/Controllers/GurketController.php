@@ -200,6 +200,7 @@ class GurketController extends Controller
                     // 'rencana_id' => $item->rencana_id,
                     'rencana_id' => $item->rensi_id,
                     'tanggal' => $item->tanggal,
+                    'thn_ajaran' => $item->thn_ajaran,
                     'status_hari' => $item->status_hari,
                     'keterangan' => $item->keterangan,
                     'kelas' => $item->kelas ? [
@@ -225,12 +226,17 @@ class GurketController extends Controller
 
         if ($mode === 'week') {
             $kelasAll = Kelas::select('kelas_id')->get();
-            for ($i = 0; $i <= 7; $i++) {
+            for ($i = 0; $i < 30; $i++) {
                 $tanggal = $tanggalMulai->copy()->addDays($i);
                 $dayOfWeek = $tanggal->dayOfWeek;
                 $statusHari = ($dayOfWeek === Carbon::SATURDAY || $dayOfWeek === Carbon::SUNDAY)
                     ? 'libur'
                     : 'normal';
+                $month = (int)$tanggal->format('n');
+                $year = (int)$tanggal->format('Y');
+                $startYear = $month >= 7 ? $year : ($year - 1);
+                $endYear = $startYear + 1;
+                $thnAjar = sprintf('%d%d', $startYear, $endYear);
                 foreach ($kelasAll as $kelas) {
                     RencanaAbsensi::updateOrCreate(
                         [
@@ -240,16 +246,22 @@ class GurketController extends Controller
                         [
                             'status_hari' => $statusHari,
                             'keterangan' => $keterangan,
+                            'thn_ajaran' => $thnAjar,
                         ]
                     );
                 }
             }
 
-            return ApiResponse::success(null, 'Rencana absensi mingguan untuk semua kelas berhasil dibuat');
+            return ApiResponse::success(null, 'Rencana absensi 30 hari untuk semua kelas berhasil dibuat');
         }
 
         $kelasAll = Kelas::select('kelas_id')->get();
         foreach ($kelasAll as $kelas) {
+            $month = (int)$tanggalMulai->format('n');
+            $year = (int)$tanggalMulai->format('Y');
+            $startYear = $month >= 7 ? $year : ($year - 1);
+            $endYear = $startYear + 1;
+            $thnAjar = sprintf('%d%d', $startYear, $endYear);
             RencanaAbsensi::updateOrCreate(
                 [
                     'kelas_id' => $kelas->kelas_id,
@@ -258,6 +270,7 @@ class GurketController extends Controller
                 [
                     'status_hari' => 'normal',
                     'keterangan' => $keterangan,
+                    'thn_ajaran' => $thnAjar,
                 ]
             );
         }

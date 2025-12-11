@@ -48,9 +48,8 @@ class ImportHelper
                     $kelas = Kelas::create([
                         'tingkat' => $tingkat,
                         'jurusan_id' => $jurusan->jurusan_id,
-                        'parallel' => 1,
-                        'thn_ajaran' => date('Y') . '/' . (date('Y') + 1),
-                        'walas_id' => 1, // sesuaikan dengan walas default
+                        'paralel' => 1,
+                        'walas_id' => 1,
                     ]);
                 }
 

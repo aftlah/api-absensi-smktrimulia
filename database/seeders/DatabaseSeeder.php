@@ -65,17 +65,17 @@ class DatabaseSeeder extends Seeder
         /** 🔹 5. Kelas — dibuat setelah wali kelas */
         $kelasX = Kelas::firstOrCreate(
             ['tingkat' => 'X', 'jurusan_id' => $jurusanTKJ->jurusan_id, 'paralel' => 1],
-            ['thn_ajaran' => '2023/2024', 'walas_id' => $waliKelas->walas_id]
+            ['walas_id' => $waliKelas->walas_id]
         );
 
         $kelasXI = Kelas::firstOrCreate(
             ['tingkat' => 'XI', 'jurusan_id' => $jurusanMP->jurusan_id, 'paralel' => 2],
-            ['thn_ajaran' => '2023/2024', 'walas_id' => $waliKelas->walas_id]
+            ['walas_id' => $waliKelas->walas_id]
         );
 
         $kelasXII = Kelas::firstOrCreate(
             ['tingkat' => 'XII', 'jurusan_id' => $jurusanBR->jurusan_id, 'paralel' => 3],
-            ['thn_ajaran' => '2023/2024', 'walas_id' => $waliKelas->walas_id]
+            ['walas_id' => $waliKelas->walas_id]
         );
 
         /** 🔹 6. Siswa */

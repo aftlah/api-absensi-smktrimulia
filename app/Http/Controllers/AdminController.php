@@ -212,7 +212,6 @@ class AdminController extends Controller
         $validator = Validator::make($request->all(), [
             'tingkat' => 'required|in:X,XI,XII',
             'paralel' => 'nullable|string|size:1',
-            'thn_ajaran' => ['required','string','size:9','regex:/^\d{4}\/\d{4}$/'],
             'jurusan_id' => 'required|exists:jurusan,jurusan_id',
             'walas_id' => 'required|exists:wali_kelas,walas_id',
         ]);
@@ -226,7 +225,6 @@ class AdminController extends Controller
         $kelas = Kelas::create([
             'tingkat' => $request->input('tingkat'),
             'paralel' => $request->input('paralel'),
-            'thn_ajaran' => $request->input('thn_ajaran'),
             'jurusan_id' => $request->input('jurusan_id'),
             'walas_id' => $request->input('walas_id'),
         ]);
@@ -244,7 +242,6 @@ class AdminController extends Controller
         $validator = Validator::make($request->all(), [
             'tingkat' => 'required|in:X,XI,XII',
             'paralel' => 'nullable|string|size:1',
-            'thn_ajaran' => ['required','string','size:9','regex:/^\d{4}\/\d{4}$/'],
             'jurusan_id' => 'required|exists:jurusan,jurusan_id',
             'walas_id' => 'required|exists:wali_kelas,walas_id',
         ]);
@@ -257,7 +254,6 @@ class AdminController extends Controller
 
         $kls->tingkat = $request->input('tingkat');
         $kls->paralel = $request->input('paralel');
-        $kls->thn_ajaran = $request->input('thn_ajaran');
         $kls->jurusan_id = $request->input('jurusan_id');
         $kls->walas_id = $request->input('walas_id');
         $kls->save();

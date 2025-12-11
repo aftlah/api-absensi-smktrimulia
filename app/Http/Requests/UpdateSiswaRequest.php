@@ -42,7 +42,6 @@ class UpdateSiswaRequest extends FormRequest
             // --- Data kelas opsional ---
             'kelas.tingkat' => 'nullable|string',
             'kelas.paralel' => 'nullable|string',
-            'kelas.thn_ajaran' => 'nullable|string',
             'kelas.jurusan_id' => 'nullable|exists:jurusan,jurusan_id',
             'kelas.walas_id' => 'nullable|exists:wali_kelas,walas_id',
         ];

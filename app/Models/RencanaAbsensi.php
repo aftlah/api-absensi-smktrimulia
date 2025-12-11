@@ -11,7 +11,7 @@ class RencanaAbsensi extends Model
 
     protected $table = 'rencana_absensi';
     protected $primaryKey = 'rensi_id';
-    protected $fillable = ['tanggal', 'status_hari', 'keterangan', 'kelas_id'];
+    protected $fillable = ['tanggal', 'thn_ajaran', 'status_hari', 'keterangan', 'kelas_id'];
 
     // kelas
     public function kelas()

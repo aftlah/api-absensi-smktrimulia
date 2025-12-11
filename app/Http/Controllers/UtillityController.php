@@ -21,7 +21,6 @@ class UtillityController extends Controller
                     'kelas_id'    => $item->kelas_id,
                     'tingkat'     => $item->tingkat,
                     'paralel'     => $item->paralel,
-                    'thn_ajaran'  => $item->thn_ajaran,
                     'jurusan_id'  => $item->jurusan_id,
                     'walas_id'    => $item->walas_id,
                     'created_at'  => $item->created_at,
