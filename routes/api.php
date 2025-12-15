@@ -38,29 +38,32 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::get('/rekap', [AdminController::class, 'rekap']);
         // Pengaturan sistem
         Route::get('/pengaturan', [AdminController::class, 'getPengaturan']);
-        Route::put('/profil', [AdminController::class, 'updateAdminProfile']);
         Route::put('/pengaturan', [AdminController::class, 'updatePengaturan']);
+        Route::put('/profil', [AdminController::class, 'updateAdminProfile']);
+
         // Jurusan
         Route::get('/jurusan', [AdminController::class, 'getJurusan']);
         Route::post('/jurusan', [AdminController::class, 'createJurusan']);
         Route::put('/jurusan/{jurusan}', [AdminController::class, 'updateJurusan']);
         Route::delete('/jurusan/{jurusan}', [AdminController::class, 'deleteJurusan']);
+
         // Kelas
         Route::get('/kelas', [AdminController::class, 'getKelas']);
         Route::post('/kelas', [AdminController::class, 'createKelas']);
         Route::put('/kelas/{kelas}', [AdminController::class, 'updateKelas']);
         Route::delete('/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
-        // Riwayat Kelas
         Route::get('/riwayat-kelas', [AdminController::class, 'getRiwayatKelas']);
+
         // Wali Kelas list
-        Route::get('/walas', [AdminController::class, 'getWalas']);
+        // Route::get('/walas', [AdminController::class, 'getWalas']);
+
         // Wali Kelas CRUD
         Route::get('/wali-kelas', [AdminController::class, 'getWaliKelas']);
         Route::post('/wali-kelas', [AdminController::class, 'createWaliKelas']);
         Route::put('/wali-kelas/{walas}', [AdminController::class, 'updateWaliKelas']);
         Route::delete('/wali-kelas/{walas}', [AdminController::class, 'deleteWaliKelas']);
-        // Akun untuk wali kelas
-        Route::get('/akun-walas', [AdminController::class, 'getAkunWalas']);
+        
+
         // Guru Piket CRUD
         Route::get('/guru-piket', [AdminController::class, 'getGuruPiket']);
         Route::post('/guru-piket', [AdminController::class, 'createGuruPiket']);

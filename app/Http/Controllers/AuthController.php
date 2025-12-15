@@ -116,7 +116,7 @@ class AuthController extends Controller
     {
         Auth::logout();
 
-        return ApiResponse::success(null, 'Successfully logged out');
+        return ApiResponse::success(null, 'Berhasil logout');
     }
 
     /**

@@ -9,7 +9,6 @@ use App\Models\Pengaturan;
 use App\Models\Kelas;
 use App\Models\WaliKelas;
 use App\Models\Akun;
-use Illuminate\Validation\Rule;
 use App\Models\GuruPiket;
 use Illuminate\Support\Facades\Hash;
 use App\Models\JadwalPiket;
@@ -21,6 +20,7 @@ use App\Helpers\ApiResponse;
 use App\Helpers\ImportHelper;
 use App\Http\Requests\UpdateSiswaRequest;
 use App\Models\RiwayatKelas;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -66,7 +66,7 @@ class AdminController extends Controller
             $rekap[$kelasNama][$status] += 1;
         }
 
-        return response()->json([
+        return ApiResponse::success([
             'tanggal' => $tanggal,
             'rekap' => array_values($rekap),
         ]);
@@ -79,12 +79,10 @@ class AdminController extends Controller
     {
         $pengaturan = Pengaturan::first();
         if (!$pengaturan) {
-            return response()->json([
-                'message' => 'Pengaturan belum tersedia'
-            ], 404);
+            return ApiResponse::error('Pengaturan belum tersedia', null, 404);
         }
 
-        return response()->json([
+        return ApiResponse::success([
             'pengaturan_id' => $pengaturan->pengaturan_id,
             'latitude' => (float) $pengaturan->latitude,
             'longitude' => (float) $pengaturan->longitude,
@@ -92,7 +90,7 @@ class AdminController extends Controller
             'jam_masuk' => $pengaturan->jam_masuk,
             'jam_pulang' => $pengaturan->jam_pulang,
             'toleransi_telat' => (int) $pengaturan->toleransi_telat,
-        ]);
+        ], 'Pengaturan absensi berhasil diambil');
     }
 
     /**
@@ -110,10 +108,7 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $pengaturan = Pengaturan::first();
@@ -130,9 +125,7 @@ class AdminController extends Controller
         $pengaturan->toleransi_telat = $request->input('toleransi_telat');
         $pengaturan->save();
 
-        return response()->json([
-            'message' => 'Pengaturan berhasil diperbarui',
-        ]);
+        return ApiResponse::success(null, 'Pengaturan berhasil diperbarui');
     }
 
 
@@ -140,9 +133,9 @@ class AdminController extends Controller
     public function getJurusan(Request $request)
     {
         $jurusan = Jurusan::all();
-        return response()->json([
+        return ApiResponse::success([
             'jurusan' => $jurusan,
-        ]);
+        ], 'Jurusan berhasil diambil');
     }
 
     public function createJurusan(Request $request)
@@ -151,20 +144,16 @@ class AdminController extends Controller
             'nama_jurusan' => 'required|string|max:255|unique:jurusan,nama_jurusan',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $jurusan = Jurusan::create([
             'nama_jurusan' => $request->input('nama_jurusan'),
         ]);
 
-        return response()->json([
-            'message' => 'Jurusan berhasil ditambahkan',
+        return ApiResponse::success([
             'jurusan' => $jurusan,
-        ], 201);
+        ], 'Jurusan berhasil ditambahkan', 201);
     }
 
     public function updateJurusan(Request $request, $jurusan)
@@ -174,28 +163,22 @@ class AdminController extends Controller
             'nama_jurusan' => 'required|string|max:255|unique:jurusan,nama_jurusan,' . $jur->jurusan_id . ',jurusan_id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $jur->nama_jurusan = $request->input('nama_jurusan');
         $jur->save();
 
-        return response()->json([
-            'message' => 'Jurusan berhasil diperbarui',
+        return ApiResponse::success([
             'jurusan' => $jur,
-        ]);
+        ], 'Jurusan berhasil diperbarui');
     }
 
     public function deleteJurusan($jurusan)
     {
         $jur = Jurusan::findOrFail($jurusan);
         $jur->delete();
-        return response()->json([
-            'message' => 'Jurusan berhasil dihapus',
-        ]);
+        return ApiResponse::success(null, 'Jurusan berhasil dihapus');
     }
 
     /**
@@ -204,9 +187,9 @@ class AdminController extends Controller
     public function getKelas(Request $request)
     {
         $kelas = Kelas::with(['jurusan', 'walas'])->get();
-        return response()->json([
+        return ApiResponse::success([
             'kelas' => $kelas,
-        ]);
+        ], 'Kelas berhasil diambil');
     }
 
     public function createKelas(Request $request)
@@ -218,10 +201,7 @@ class AdminController extends Controller
             'walas_id' => 'required|exists:wali_kelas,walas_id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $kelas = Kelas::create([
@@ -232,10 +212,9 @@ class AdminController extends Controller
         ]);
 
         $kelas->load(['jurusan', 'walas']);
-        return response()->json([
-            'message' => 'Kelas berhasil ditambahkan',
+        return ApiResponse::success([
             'kelas' => $kelas,
-        ], 201);
+        ], 'Kelas berhasil ditambahkan', 201);
     }
 
     public function updateKelas(Request $request, $kelas)
@@ -248,10 +227,7 @@ class AdminController extends Controller
             'walas_id' => 'required|exists:wali_kelas,walas_id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $kls->tingkat = $request->input('tingkat');
@@ -261,25 +237,22 @@ class AdminController extends Controller
         $kls->save();
 
         $kls->load(['jurusan', 'walas']);
-        return response()->json([
-            'message' => 'Kelas berhasil diperbarui',
+        return ApiResponse::success([
             'kelas' => $kls,
-        ]);
+        ], 'Kelas berhasil diperbarui');
     }
 
     public function deleteKelas($kelas)
     {
         $kls = Kelas::findOrFail($kelas);
         $kls->delete();
-        return response()->json([
-            'message' => 'Kelas berhasil dihapus',
-        ]);
+        return ApiResponse::success(null, 'Kelas berhasil dihapus');
     }
 
     public function getWalas(Request $request)
     {
         $walas = WaliKelas::select('walas_id', 'nip', 'nama')->get();
-        return response()->json([
+        return ApiResponse::success([
             'walas' => $walas,
         ]);
     }
@@ -330,9 +303,9 @@ class AdminController extends Controller
             ];
         });
 
-        return response()->json([
+        return ApiResponse::success([
             'riwayat' => $riwayat,
-        ]);
+        ], 'Riwayat kelas berhasil diambil');
     }
 
     /**
@@ -341,9 +314,9 @@ class AdminController extends Controller
     public function getWaliKelas(Request $request)
     {
         $walas = WaliKelas::with('akun')->get();
-        return response()->json([
+        return ApiResponse::success([
             'walas' => $walas,
-        ]);
+        ], 'Wali kelas berhasil diambil');
     }
 
     public function createWaliKelas(Request $request)
@@ -353,10 +326,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $nip = $request->input('nip');
@@ -379,10 +349,9 @@ class AdminController extends Controller
         ]);
 
         $walas->load('akun');
-        return response()->json([
-            'message' => 'Wali kelas berhasil ditambahkan',
+        return ApiResponse::success([
             'walas' => $walas,
-        ], 201);
+        ], 'Wali kelas berhasil ditambahkan', 201);
     }
 
     public function updateWaliKelas(Request $request, $walas)
@@ -393,10 +362,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $wk->nip = $request->input('nip');
@@ -414,28 +380,19 @@ class AdminController extends Controller
         }
 
         $wk->load('akun');
-        return response()->json([
-            'message' => 'Wali kelas berhasil diperbarui',
+        return ApiResponse::success([
             'walas' => $wk,
-        ]);
+        ], 'Wali kelas berhasil diperbarui');
     }
 
     public function deleteWaliKelas($walas)
     {
         $wk = WaliKelas::findOrFail($walas);
         $wk->delete();
-        return response()->json([
-            'message' => 'Wali kelas berhasil dihapus',
-        ]);
+        return ApiResponse::success(null, 'Wali kelas berhasil dihapus');
     }
 
-    public function getAkunWalas(Request $request)
-    {
-        $akun = Akun::where('role', 'walas')->select('akun_id', 'username', 'role')->get();
-        return response()->json([
-            'akun' => $akun,
-        ]);
-    }
+    
 
     public function importSiswa(Request $request)
     {
@@ -551,9 +508,9 @@ class AdminController extends Controller
     public function getGuruPiket(Request $request)
     {
         $gurket = GuruPiket::with('akun')->get();
-        return response()->json([
+        return ApiResponse::success([
             'gurket' => $gurket,
-        ]);
+        ], 'Data guru piket berhasil diambil');
     }
 
     public function createGuruPiket(Request $request)
@@ -563,10 +520,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $nip = $request->input('nip');
@@ -589,10 +543,9 @@ class AdminController extends Controller
         ]);
 
         $gp->load('akun');
-        return response()->json([
-            'message' => 'Guru piket berhasil ditambahkan',
+        return ApiResponse::success([
             'gurket' => $gp,
-        ], 201);
+        ], 'Guru piket berhasil ditambahkan', 201);
     }
 
     public function updateGuruPiket(Request $request, $gurket)
@@ -603,10 +556,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $gp->nip = $request->input('nip');
@@ -624,48 +574,41 @@ class AdminController extends Controller
         }
 
         $gp->load('akun');
-        return response()->json([
-            'message' => 'Guru piket berhasil diperbarui',
+        return ApiResponse::success([
             'gurket' => $gp,
-        ]);
+        ], 'Guru piket berhasil diperbarui');
     }
 
     public function deleteGuruPiket($gurket)
     {
         $gp = GuruPiket::findOrFail($gurket);
         $gp->delete();
-        return response()->json([
-            'message' => 'Guru piket berhasil dihapus',
-        ]);
+        return ApiResponse::success(null, 'Guru piket berhasil dihapus');
     }
 
     public function getAkunGuruPiket(Request $request)
     {
         $akun = Akun::where('role', 'gurket')->select('akun_id', 'username', 'role')->get();
-        return response()->json([
+        return ApiResponse::success([
             'akun' => $akun,
         ]);
     }
 
     public function updateAdminProfile(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
         $admin = AdminModel::where('akun_id', $user->akun_id)->firstOrFail();
         $admin->nama = $request->input('nama');
         $admin->save();
-        return response()->json([
-            'message' => 'Profil admin berhasil diperbarui',
+        return ApiResponse::success([
             'admin' => $admin,
-        ]);
+        ], 'Profil admin berhasil diperbarui');
     }
 
     /**
@@ -674,7 +617,7 @@ class AdminController extends Controller
     public function getJadwalPiket(Request $request)
     {
         $jadwal = JadwalPiket::with('guruPiket')->orderBy('tanggal', 'desc')->get();
-        return response()->json([
+        return ApiResponse::success([
             'jadwal' => $jadwal,
         ]);
     }
@@ -686,10 +629,7 @@ class AdminController extends Controller
             'gurket_id' => 'required|exists:guru_piket,gurket_id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $jp = JadwalPiket::create([
@@ -698,10 +638,9 @@ class AdminController extends Controller
         ]);
 
         $jp->load('guruPiket');
-        return response()->json([
-            'message' => 'Jadwal piket berhasil ditambahkan',
+        return ApiResponse::success([
             'jadwal' => $jp,
-        ], 201);
+        ], 'Jadwal piket berhasil ditambahkan', 201);
     }
 
     public function updateJadwalPiket(Request $request, $jadwal)
@@ -712,10 +651,7 @@ class AdminController extends Controller
             'gurket_id' => 'required|exists:guru_piket,gurket_id',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors(),
-            ], 422);
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
         $jp->tanggal = $request->input('tanggal');
@@ -723,18 +659,15 @@ class AdminController extends Controller
         $jp->save();
 
         $jp->load('guruPiket');
-        return response()->json([
-            'message' => 'Jadwal piket berhasil diperbarui',
+        return ApiResponse::success([
             'jadwal' => $jp,
-        ]);
+        ], 'Jadwal piket berhasil diperbarui');
     }
 
     public function deleteJadwalPiket($jadwal)
     {
         $jp = JadwalPiket::findOrFail($jadwal);
         $jp->delete();
-        return response()->json([
-            'message' => 'Jadwal piket berhasil dihapus',
-        ]);
+        return ApiResponse::success(null, 'Jadwal piket berhasil dihapus');
     }
 }

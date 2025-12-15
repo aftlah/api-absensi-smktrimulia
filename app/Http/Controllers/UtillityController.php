@@ -37,7 +37,7 @@ class UtillityController extends Controller
     /**
      * Ambil detail profil siswa
      */
-    public function getDetailProfilSiswa(Request $request)
+    public function getDetailProfilSiswa()
     {
         $user = Auth::user();
 

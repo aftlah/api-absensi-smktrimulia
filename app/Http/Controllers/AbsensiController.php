@@ -233,7 +233,12 @@ class AbsensiController extends Controller
             'bukti'        => $path,
         ]);
 
-        return ApiResponse::success($absensi, 'Izin sakit berhasil diajukan');
+        $message = match ($request->jenis_absen) {
+            'izin' => 'Izin berhasil diajukan',
+            'sakit' => 'Sakit berhasil diajukan',
+        };
+
+        return ApiResponse::success($absensi, $message);
     }
 
     // lihat riwayat absensi siswa
