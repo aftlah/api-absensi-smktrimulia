@@ -12,12 +12,12 @@ use App\Models\WaliKelas;
 use App\Models\Siswa;
 use App\Models\Akun;
 
+
 class AuthController extends Controller
 {
     public function Login(Request $request)
     {
         $credentials = $request->only('username', 'password');
-        // dd($credentials);
 
         if (!$token = Auth::attempt($credentials)) {
             return ApiResponse::error('Username atau password salah', null, 401);
@@ -39,15 +39,11 @@ class AuthController extends Controller
             $nama = $sw?->nama;
         }
 
-        return response()->json([
-            'responseStatus' => true,
-            'responseMessage' => 'Login berhasil',
-            'responseHeader' => [
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'expires_in' => Auth::factory()->getTTL() * 60
-            ],
-            'responseData' => [
+        return ApiResponse::success([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => Auth::factory()->getTTL() * 60,
+            'user' => [
                 'akun_id' => $user->akun_id,
                 'username' => $user->username,
                 'role' => $user->role,
@@ -55,7 +51,7 @@ class AuthController extends Controller
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at
             ]
-        ]);
+        ], 'Login berhasil');
     }
 
     /**
@@ -63,7 +59,6 @@ class AuthController extends Controller
      */
     public function me()
     {
-        // return response()->json(Auth::user());
         return ApiResponse::success(Auth::user(), 'User berhasil diambil');
     }
 
@@ -85,18 +80,14 @@ class AuthController extends Controller
             $nama = $sw?->nama;
         }
 
-        return response()->json([
-            'responseStatus' => true,
-            'responseMessage' => 'Profil berhasil diambil',
-            'responseData' => [
-                'akun_id' => $user->akun_id,
-                'username' => $user->username,
-                'role' => $user->role,
-                'nama' => $nama,
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
-            ],
-        ]);
+        return ApiResponse::success([
+            'akun_id' => $user->akun_id,
+            'username' => $user->username,
+            'role' => $user->role,
+            'nama' => $nama,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ], 'Profil berhasil diambil');
     }
 
     public function resetPassword(Request $request)
@@ -109,19 +100,13 @@ class AuthController extends Controller
 
         $akun = Akun::where('akun_id', $user->akun_id)->first();
         if (!$akun || !Hash::check($validated['old_password'], $akun->password)) {
-            return response()->json([
-                'responseStatus' => false,
-                'responseMessage' => 'Password lama tidak sesuai',
-            ], 422);
+            return ApiResponse::error('Password lama tidak sesuai', null, 422);
         }
 
         $akun->password = Hash::make($validated['new_password']);
         $akun->save();
 
-        return response()->json([
-            'responseStatus' => true,
-            'responseMessage' => 'Password berhasil diubah',
-        ]);
+        return ApiResponse::success(null, 'Password berhasil diubah');
     }
 
     /**
@@ -131,13 +116,7 @@ class AuthController extends Controller
     {
         Auth::logout();
 
-        // return response()->json(['message' => 'Successfully logged out']);
-        // return ApiResponse::success(null, 'Successfully logged out');
-
-        return response()->json([
-            'responseStatus' => true,
-            'responseMessage' => 'Successfully logged out',
-        ]);
+        return ApiResponse::success(null, 'Successfully logged out');
     }
 
     /**
