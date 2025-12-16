@@ -62,14 +62,14 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/wali-kelas', [AdminController::class, 'createWaliKelas']);
         Route::put('/wali-kelas/{walas}', [AdminController::class, 'updateWaliKelas']);
         Route::delete('/wali-kelas/{walas}', [AdminController::class, 'deleteWaliKelas']);
-        
+
 
         // Guru Piket CRUD
         Route::get('/guru-piket', [AdminController::class, 'getGuruPiket']);
         Route::post('/guru-piket', [AdminController::class, 'createGuruPiket']);
         Route::put('/guru-piket/{gurket}', [AdminController::class, 'updateGuruPiket']);
         Route::delete('/guru-piket/{gurket}', [AdminController::class, 'deleteGuruPiket']);
-        Route::get('/akun-gurket', [AdminController::class, 'getAkunGuruPiket']);
+        // Route::get('/akun-gurket', [AdminController::class, 'getAkunGuruPiket']);
 
         // Jadwal Piket CRUD
         Route::get('/jadwal-piket', [AdminController::class, 'getJadwalPiket']);
@@ -80,12 +80,11 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/import-siswa', [AdminController::class, 'importSiswa']);
         Route::prefix('/kelola-datasiswa')->group(function () {
             Route::get('/', [AdminController::class, 'getDataSiswa']);
-            Route::post('/update', [AdminController::class, 'updateDataSiswa']);
             Route::post('/create', [AdminController::class, 'createDataSiswa']);
+            Route::post('/update', [AdminController::class, 'updateDataSiswa']);
         });
     });
 });
-
 
 
 // Admin, gurket & wali kelas

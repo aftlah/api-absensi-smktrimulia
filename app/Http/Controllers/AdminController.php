@@ -586,13 +586,13 @@ class AdminController extends Controller
         return ApiResponse::success(null, 'Guru piket berhasil dihapus');
     }
 
-    public function getAkunGuruPiket(Request $request)
-    {
-        $akun = Akun::where('role', 'gurket')->select('akun_id', 'username', 'role')->get();
-        return ApiResponse::success([
-            'akun' => $akun,
-        ]);
-    }
+    // public function getAkunGuruPiket(Request $request)
+    // {
+    //     $akun = Akun::where('role', 'gurket')->select('akun_id', 'username', 'role')->get();
+    //     return ApiResponse::success([
+    //         'akun' => $akun,
+    //     ]);
+    // }
 
     public function updateAdminProfile(Request $request)
     {
@@ -619,7 +619,7 @@ class AdminController extends Controller
         $jadwal = JadwalPiket::with('guruPiket')->orderBy('tanggal', 'desc')->get();
         return ApiResponse::success([
             'jadwal' => $jadwal,
-        ]);
+        ], 'Data jadwal piket berhasil diambil');
     }
 
     public function createJadwalPiket(Request $request)
