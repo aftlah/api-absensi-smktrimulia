@@ -95,12 +95,13 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
     Route::get('/izin-hariini', [DashboardController::class, 'izinHariIni']);
     Route::get('/sakit-hariini', [DashboardController::class, 'sakitHariIni']);
-    Route::get('/guru/rekap', [GurketController::class, 'rekap']);
-
-    Route::post('/akun/reset-password', [AuthController::class, 'resetPassword']);
+    // Route::get('/guru/rekap', [GurketController::class, 'rekap']);
 
     // Utility
     Route::get('/utility/kelas', [UtillityController::class, 'getListKelas']);
+
+    // reset pw
+    Route::post('/akun/reset-password', [AuthController::class, 'resetPassword']);
 });
 
 // Semua role (termasuk siswa) butuh membaca pengaturan
@@ -116,9 +117,7 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
 
     Route::put('/profil', [GurketController::class, 'updateProfil']);
 
-    Route::prefix('kelola-datasiswa')->group(function () {});
-
-
+    // Route::prefix('kelola-datasiswa')->group(function () {});
     Route::prefix('/absensi')->group(function () {
         Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
         Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
@@ -134,6 +133,6 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
 });
 
 
-Route::prefix('utillity')->group(function () {
-    Route::get('/getListKelas', [UtillityController::class, 'getListKelas']);
-});
+// Route::prefix('utillity')->group(function () {
+//     Route::get('/getListKelas', [UtillityController::class, 'getListKelas']);
+// });
