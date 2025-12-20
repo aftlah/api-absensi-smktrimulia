@@ -13,6 +13,7 @@ use App\Models\RencanaAbsensi;
 use App\Models\Siswa;
 use App\Models\Akun;
 use App\Models\WaliKelas;
+use App\Models\AktivitasTerbaru;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -85,6 +86,58 @@ class GurketController extends Controller
         return ApiResponse::success([
             'absensi' => $absensi,
         ], 'Status absensi berhasil diperbarui');
+    }
+
+    public function updateAbsensiStatus(Request $request)
+    {
+        try {
+            $request->validate([
+                'absensi_id' => 'required|exists:absensi,absensi_id',
+                'status' => 'required|in:hadir,terlambat,izin,sakit,alfa',
+                'keterangan' => 'nullable|string',
+            ]);
+
+            $absensi = Absensi::with('siswa')->findOrFail($request->input('absensi_id'));
+            $oldStatus = $absensi->status;
+            
+            $absensi->status = $request->input('status');
+            if ($request->filled('keterangan')) {
+                $absensi->keterangan = $request->input('keterangan');
+            }
+            $absensi->save();
+
+            // Log aktivitas (optional - won't fail if error)
+            try {
+                $user = Auth::user();
+                $siswa = $absensi->siswa;
+                
+                if ($siswa && $user) {
+                    AktivitasTerbaru::create([
+                        'akun_id' => $user->akun_id,
+                        'tabel' => 'absensi',
+                        'aksi' => 'updated',
+                        'deskripsi' => "Status absensi siswa {$siswa->nama} (NIS: {$siswa->nis}) diubah dari '{$oldStatus}' menjadi '{$absensi->status}'",
+                        'user' => $user->nama ?? $user->username ?? 'Unknown',
+                        'role' => $user->role ?? 'unknown'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the main operation
+                \Log::error('Failed to log activity: ' . $e->getMessage());
+            }
+
+            return ApiResponse::success([
+                'absensi' => $absensi->load('siswa'),
+            ], 'Status absensi berhasil diperbarui');
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error('Validation failed', $e->errors(), 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return ApiResponse::error('Absensi not found', null, 404);
+        } catch (\Exception $e) {
+            \Log::error('Error updating absensi status: ' . $e->getMessage());
+            return ApiResponse::error('Failed to update status', null, 500);
+        }
     }
     public function getAbsensiSiswaHariIni()
     {

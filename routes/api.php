@@ -121,6 +121,7 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::prefix('/absensi')->group(function () {
         Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
         Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
+        Route::post('/updateAbsensiStatus', [GurketController::class, 'updateAbsensiStatus']);
         Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
         Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
 

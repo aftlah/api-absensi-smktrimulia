@@ -10,8 +10,8 @@ class AktivitasTerbaru extends Model
     use HasFactory;
 
     protected $table = 'aktivitas_terbaru';
-    protected $primaryKey = 'aktivitas_id';
-    protected $fillable = ['akun_id', 'tabel', 'aksi', 'deskripsi'];
+    protected $primaryKey = 'id'; // Changed from 'aktivitas_id' to 'id'
+    protected $fillable = ['akun_id', 'tabel', 'aksi', 'deskripsi', 'user', 'role'];
 
     public function akun()
     {
