@@ -53,6 +53,8 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::put('/kelas/{kelas}', [AdminController::class, 'updateKelas']);
         Route::delete('/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
         Route::get('/riwayat-kelas', [AdminController::class, 'getRiwayatKelas']);
+        Route::put('/riwayat-kelas/{riwayat}', [AdminController::class, 'updateRiwayatKelas']);
+        Route::post('/riwayat-kelas/promote/{kelas}', [AdminController::class, 'promoteClass']);
 
         // Wali Kelas list
         // Route::get('/walas', [AdminController::class, 'getWalas']);

@@ -33,6 +33,7 @@ class UpdateSiswaRequest extends FormRequest
             'nama' => 'nullable|string',
             'jenkel' => 'nullable|string|in:L,P',
             'kelas_id' => 'nullable|exists:kelas,kelas_id',
+            'status' => 'nullable|string|in:aktif,naik kelas,tidak naik kelas',
 
             // --- Akun ---
             'username' => 'nullable|string|unique:akun,username,' . $akunId . ',akun_id',

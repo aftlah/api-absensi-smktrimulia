@@ -21,6 +21,7 @@ use App\Helpers\ImportHelper;
 use App\Http\Requests\UpdateSiswaRequest;
 use App\Models\RiwayatKelas;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -263,11 +264,18 @@ class AdminController extends Controller
     public function getRiwayatKelas(Request $request)
     {
         $kelasId = $request->query('kelas_id');
+        $siswaId = $request->query('siswa_id');
         $q = trim((string)$request->query('q', ''));
+
+        // Ensure all active students have riwayat_kelas records
+        $this->ensureRiwayatKelasRecords();
 
         $query = RiwayatKelas::with(['siswa.kelas.jurusan', 'kelas.jurusan'])
             ->when(!empty($kelasId), function ($qb) use ($kelasId) {
                 $qb->where('kelas_id', $kelasId);
+            })
+            ->when(!empty($siswaId), function ($qb) use ($siswaId) {
+                $qb->where('siswa_id', $siswaId);
             })
             ->when(!empty($q), function ($qb) use ($q) {
                 $qb->whereHas('siswa', function ($q2) use ($q) {
@@ -306,6 +314,161 @@ class AdminController extends Controller
         return ApiResponse::success([
             'riwayat' => $riwayat,
         ], 'Riwayat kelas berhasil diambil');
+    }
+
+    public function updateRiwayatKelas(Request $request, $id)
+    {
+        $riwayat = RiwayatKelas::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:aktif,naik kelas,tidak naik kelas,lulus,keluar,pindah',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
+
+        $riwayat->status = $request->input('status');
+        $riwayat->save();
+
+        return ApiResponse::success($riwayat, 'Status riwayat kelas berhasil diperbarui');
+    }
+
+    /**
+     * Ensure all active students have riwayat_kelas records
+     */
+    private function ensureRiwayatKelasRecords()
+    {
+        // Get all students who don't have any riwayat_kelas record
+        $studentsWithoutRiwayat = Siswa::whereDoesntHave('riwayatKelas')
+            ->whereNotNull('kelas_id')
+            ->get();
+
+        // Create riwayat_kelas records for these students
+        foreach ($studentsWithoutRiwayat as $student) {
+            RiwayatKelas::create([
+                'siswa_id' => $student->siswa_id,
+                'kelas_id' => $student->kelas_id,
+                'status' => 'aktif'
+            ]);
+        }
+    }
+
+    /**
+     * PROMOTE CLASS - Naik Tingkat Kelas
+     */
+    public function promoteClass(Request $request, $kelasId)
+    {
+        try {
+            // Validate request
+            $validator = Validator::make($request->all(), [
+                'next_tingkat' => 'required|string|in:XI,XII'
+            ]);
+
+            if ($validator->fails()) {
+                return ApiResponse::error('Validation failed', $validator->errors(), 422);
+            }
+
+            $nextTingkat = $request->input('next_tingkat');
+
+            // Find source class
+            $sourceClass = Kelas::with(['jurusan', 'siswa'])->find($kelasId);
+            if (!$sourceClass) {
+                return ApiResponse::error('Kelas tidak ditemukan', null, 404);
+            }
+
+            // Validate current tingkat
+            if (!in_array($sourceClass->tingkat, ['X', 'XI'])) {
+                return ApiResponse::error('Hanya kelas X dan XI yang dapat naik tingkat', null, 400);
+            }
+
+            // Validate next tingkat logic
+            if (($sourceClass->tingkat === 'X' && $nextTingkat !== 'XI') ||
+                ($sourceClass->tingkat === 'XI' && $nextTingkat !== 'XII')
+            ) {
+                return ApiResponse::error('Tingkat tujuan tidak valid', null, 400);
+            }
+
+            // Check if students exist in the class
+            $students = $sourceClass->siswa;
+            if ($students->isEmpty()) {
+                return ApiResponse::error('Tidak ada siswa dalam kelas ini', null, 400);
+            }
+
+            // Check if source class has a wali kelas assigned
+            if (!$sourceClass->walas_id) {
+                return ApiResponse::error('Kelas asal belum memiliki wali kelas. Silakan assign wali kelas terlebih dahulu.', null, 400);
+            }
+
+            // Find or create destination class
+            $destinationClass = Kelas::where([
+                'tingkat' => $nextTingkat,
+                'jurusan_id' => $sourceClass->jurusan_id,
+                'paralel' => $sourceClass->paralel
+            ])->first();
+
+            if (!$destinationClass) {
+                // Create new class if it doesn't exist
+                // Copy walas_id from source class (same teacher continues with promoted students)
+                $destinationClass = Kelas::create([
+                    'tingkat' => $nextTingkat,
+                    'jurusan_id' => $sourceClass->jurusan_id,
+                    'paralel' => $sourceClass->paralel,
+                    'walas_id' => $sourceClass->walas_id
+                ]);
+            }
+
+            // Start database transaction
+            DB::beginTransaction();
+
+            try {
+                // Step 1: Update existing riwayat_kelas records from "aktif" to "naik kelas" for all students in source class
+                RiwayatKelas::where('kelas_id', $sourceClass->kelas_id)
+                    ->where('status', 'aktif')
+                    ->update(['status' => 'naik kelas']);
+
+                // Step 2: Move all students to the new class
+                Siswa::where('kelas_id', $sourceClass->kelas_id)
+                    ->update(['kelas_id' => $destinationClass->kelas_id]);
+
+                // Step 3: Create new riwayat_kelas records for the destination class with status "aktif"
+                foreach ($students as $student) {
+                    RiwayatKelas::create([
+                        'siswa_id' => $student->siswa_id,
+                        'kelas_id' => $destinationClass->kelas_id,
+                        'status' => 'aktif'
+                    ]);
+                }
+
+                DB::commit();
+
+                // Load updated data for response
+                $sourceClass->load(['jurusan']);
+                $destinationClass->load(['jurusan']);
+
+                return ApiResponse::success([
+                    'source_class' => [
+                        'kelas_id' => $sourceClass->kelas_id,
+                        'tingkat' => $sourceClass->tingkat,
+                        'paralel' => $sourceClass->paralel,
+                        'jurusan' => $sourceClass->jurusan->nama_jurusan ?? null,
+                        'students_moved' => $students->count()
+                    ],
+                    'destination_class' => [
+                        'kelas_id' => $destinationClass->kelas_id,
+                        'tingkat' => $destinationClass->tingkat,
+                        'paralel' => $destinationClass->paralel,
+                        'jurusan' => $destinationClass->jurusan->nama_jurusan ?? null,
+                        'walas_assigned' => $destinationClass->walas_id ? true : false
+                    ]
+                ], "Berhasil menaikkan tingkat {$students->count()} siswa dari kelas {$sourceClass->tingkat} ke {$destinationClass->tingkat}. Riwayat kelas lama dipertahankan dengan status 'naik kelas'.");
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return ApiResponse::error('Terjadi kesalahan saat memproses kenaikan tingkat: ' . $e->getMessage(), null, 500);
+        }
     }
 
     /**
@@ -392,7 +555,7 @@ class AdminController extends Controller
         return ApiResponse::success(null, 'Wali kelas berhasil dihapus');
     }
 
-    
+
 
     public function importSiswa(Request $request)
     {
@@ -418,18 +581,37 @@ class AdminController extends Controller
 
     public function getDataSiswa()
     {
-        $siswa = Siswa::with(['kelas', 'akun'])->get()->map(function ($item) {
+        $siswa = Siswa::with(['kelas.jurusan', 'akun', 'riwayatKelas' => function ($q) {
+            $q->latest();
+        }])->get()->map(function ($item) {
+            $status = 'aktif';
+            if ($item->riwayatKelas->isNotEmpty()) {
+                // Cari riwayat yang sesuai dengan kelas saat ini
+                $currentRiwayat = $item->riwayatKelas->where('kelas_id', $item->kelas_id)->first();
+                // Jika tidak ada, ambil yang paling terakhir
+                if (!$currentRiwayat) {
+                    $currentRiwayat = $item->riwayatKelas->first();
+                }
+                if ($currentRiwayat) {
+                    $status = $currentRiwayat->status;
+                }
+            }
+
             return [
                 'siswa_id' => $item->siswa_id,
                 'nis'      => $item->nis,
                 'nama'     => $item->nama,
                 'jenkel'   => $item->jenkel,
+                'status'   => $status,
 
                 'kelas'    => $item->kelas ? [
                     'kelas_id' => $item->kelas->kelas_id,
                     'tingkat'  => $item->kelas->tingkat,
-                    'jurusan'  => $item->kelas->jurusan,
                     'paralel'  => $item->kelas->paralel,
+                    'jurusan'  => $item->kelas->jurusan ? [
+                        'jurusan_id' => $item->kelas->jurusan->jurusan_id,
+                        'nama_jurusan' => $item->kelas->jurusan->nama_jurusan,
+                    ] : null,
                 ] : null,
 
                 'akun'     => $item->akun ? [
@@ -446,8 +628,35 @@ class AdminController extends Controller
     public function updateDataSiswa(UpdateSiswaRequest $request)
     {
         $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
+        $oldKelasId = $siswa->kelas_id;
 
         $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']))->save();
+
+        // If kelas_id changed, update riwayat_kelas
+        if ($request->has('kelas_id') && $oldKelasId != $request->input('kelas_id')) {
+            // Update current active record to "naik kelas"
+            RiwayatKelas::where('siswa_id', $siswa->siswa_id)
+                ->where('status', 'aktif')
+                ->update(['status' => 'naik kelas']);
+
+            // Create new active record for new class
+            RiwayatKelas::create([
+                'siswa_id' => $siswa->siswa_id,
+                'kelas_id' => $request->input('kelas_id'),
+                'status' => 'aktif'
+            ]);
+        }
+
+        // Update status manual jika ada
+        if ($request->has('status')) {
+            RiwayatKelas::updateOrCreate(
+                [
+                    'siswa_id' => $siswa->siswa_id,
+                    'kelas_id' => $siswa->kelas_id
+                ],
+                ['status' => $request->input('status')]
+            );
+        }
 
         if ($siswa->akun) {
             if ($request->has('username')) {
@@ -495,6 +704,13 @@ class AdminController extends Controller
             'jenkel' => $request->input('jenkel'),
             'kelas_id' => $request->input('kelas_id'),
             'akun_id' => $akun->akun_id,
+        ]);
+
+        // Create riwayat kelas with status "aktif" for new student
+        RiwayatKelas::create([
+            'siswa_id' => $siswa->siswa_id,
+            'kelas_id' => $request->input('kelas_id'),
+            'status' => 'aktif'
         ]);
 
         $siswa->load(['kelas', 'akun']);

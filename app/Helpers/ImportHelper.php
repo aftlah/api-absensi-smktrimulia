@@ -6,6 +6,7 @@ use App\Models\Akun;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\Jurusan;
+use App\Models\RiwayatKelas;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -169,6 +170,17 @@ class SiswaSheetImport implements ToCollection
                     'kelas_id' => $this->kelasId,
                     'nama' => $nama,
                     'jenkel' => $this->normalizeGender($jk),
+                ]
+            );
+
+            // Create or update riwayat kelas with status "aktif" for imported student
+            RiwayatKelas::updateOrCreate(
+                [
+                    'siswa_id' => $siswa->siswa_id,
+                    'kelas_id' => $this->kelasId
+                ],
+                [
+                    'status' => 'aktif'
                 ]
             );
 
