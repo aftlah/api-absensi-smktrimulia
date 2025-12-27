@@ -33,6 +33,27 @@ class UtillityController extends Controller
         return ApiResponse::success($kelas, 'Kelas berhasil diambil');
     }
 
+    /**
+     * Ambil data siswa berdasarkan nama atau NIS
+     */
+    public function getDataSiswa(Request $request)
+    {
+        $query = $request->input('query');
+
+        $siswa = Siswa::with(['akun', 'kelas.jurusan', 'kelas.walas'])
+            ->where(function ($q) use ($query) {
+                $q->where('nama', 'like', "%$query%")
+                    ->orWhere('nis', 'like', "%$query%");
+            })
+            ->get();
+
+        if ($siswa->isEmpty()) {
+            return ApiResponse::error('Siswa tidak ditemukan', null, 404);
+        }
+
+        return ApiResponse::success($siswa, 'Data siswa berhasil diambil');
+    }
+
 
     /**
      * Ambil detail profil siswa

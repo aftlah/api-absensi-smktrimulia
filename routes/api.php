@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 // Auth
+// testting hello world
+// Route::get('/', function () {
+//     return response()->json(['message' => 'Hello World!']);
+// });
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
 Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
@@ -101,6 +106,7 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
 
     // Utility
     Route::get('/utility/kelas', [UtillityController::class, 'getListKelas']);
+    Route::get('/utility/siswa', [UtillityController::class, 'getDataSiswa']);
 
     // reset pw
     Route::post('/akun/reset-password', [AuthController::class, 'resetPassword']);
