@@ -413,9 +413,9 @@ class GurketController extends Controller
         $kelas = $walas->kelas;
         $label = sprintf(
             'Kelas %s %s %s',
-            $kelas->tingkat ?? '-',
-            $kelas->jurusan->nama_jurusan ?? '-',
-            $kelas->paralel ?? '-'
+            $kelas->tingkat ?? '',
+            $kelas->jurusan->nama_jurusan ?? '',
+            $kelas->paralel ?? ''
         );
 
         return ApiResponse::success([
