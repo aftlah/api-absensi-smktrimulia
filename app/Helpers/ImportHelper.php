@@ -162,12 +162,10 @@ class SiswaSheetImport implements ToCollection
                 ]
             );
 
-            // Buat / update siswa
             $siswa = Siswa::updateOrCreate(
                 ['nis' => $nomorInduk],
                 [
                     'akun_id' => $akun->akun_id,
-                    'kelas_id' => $this->kelasId,
                     'nama' => $nama,
                     'jenkel' => $this->normalizeGender($jk),
                 ]
@@ -188,7 +186,7 @@ class SiswaSheetImport implements ToCollection
                 'nis' => $siswa->nis,
                 'nama' => $siswa->nama,
                 'jenkel' => $siswa->jenkel,
-                'kelas_id' => $siswa->kelas_id,
+                'kelas_id' => $this->kelasId,
                 'akun_id' => $siswa->akun_id,
             ]);
         }

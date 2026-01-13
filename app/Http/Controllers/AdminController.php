@@ -34,7 +34,7 @@ class AdminController extends Controller
         $tanggal = $request->input('tanggal', Carbon::today()->toDateString());
 
         // Ambil absensi dengan relasi rencanaAbsensi pada tanggal tertentu
-        $absensi = Absensi::with(['siswa.kelas', 'rencanaAbsensi'])
+        $absensi = Absensi::with(['siswa.riwayatKelas.kelas.jurusan', 'rencanaAbsensi'])
             ->whereHas('rencanaAbsensi', function ($q) use ($tanggal) {
                 $q->whereDate('tanggal', $tanggal);
             })
@@ -43,8 +43,14 @@ class AdminController extends Controller
         // Kelompokkan berdasarkan kelas dan hitung ringkasan status
         $rekap = [];
         foreach ($absensi as $item) {
-            $kelasNama = ($item->siswa && $item->siswa->kelas)
-                ? ($item->siswa->kelas->tingkat . ' ' . ($item->siswa->kelas->jurusan->nama_jurusan ?? 'UMUM') . ' ' . ($item->siswa->kelas->paralel ?? ''))
+            $riwayatAktif = $item->siswa
+                ? $item->siswa->riwayatKelas->firstWhere('status', 'aktif') ?? $item->siswa->riwayatKelas->sortByDesc('created_at')->first()
+                : null;
+
+            $kelas = $riwayatAktif ? $riwayatAktif->kelas : null;
+
+            $kelasNama = ($item->siswa && $kelas)
+                ? ($kelas->tingkat . ' ' . ($kelas->jurusan->nama_jurusan ?? 'UMUM') . ' ' . ($kelas->paralel ?? ''))
                 : 'Tanpa Kelas';
 
             if (!isset($rekap[$kelasNama])) {
@@ -270,7 +276,7 @@ class AdminController extends Controller
         // Ensure all active students have riwayat_kelas records
         $this->ensureRiwayatKelasRecords();
 
-        $query = RiwayatKelas::with(['siswa.kelas.jurusan', 'kelas.jurusan'])
+        $query = RiwayatKelas::with(['siswa', 'kelas.jurusan'])
             ->when(!empty($kelasId), function ($qb) use ($kelasId) {
                 $qb->where('kelas_id', $kelasId);
             })
@@ -339,19 +345,7 @@ class AdminController extends Controller
      */
     private function ensureRiwayatKelasRecords()
     {
-        // Get all students who don't have any riwayat_kelas record
-        $studentsWithoutRiwayat = Siswa::whereDoesntHave('riwayatKelas')
-            ->whereNotNull('kelas_id')
-            ->get();
-
-        // Create riwayat_kelas records for these students
-        foreach ($studentsWithoutRiwayat as $student) {
-            RiwayatKelas::create([
-                'siswa_id' => $student->siswa_id,
-                'kelas_id' => $student->kelas_id,
-                'status' => 'aktif'
-            ]);
-        }
+        return;
     }
 
     /**
@@ -422,16 +416,10 @@ class AdminController extends Controller
             DB::beginTransaction();
 
             try {
-                // Step 1: Update existing riwayat_kelas records from "aktif" to "naik kelas" for all students in source class
                 RiwayatKelas::where('kelas_id', $sourceClass->kelas_id)
                     ->where('status', 'aktif')
                     ->update(['status' => 'naik kelas']);
 
-                // Step 2: Move all students to the new class
-                Siswa::where('kelas_id', $sourceClass->kelas_id)
-                    ->update(['kelas_id' => $destinationClass->kelas_id]);
-
-                // Step 3: Create new riwayat_kelas records for the destination class with status "aktif"
                 foreach ($students as $student) {
                     RiwayatKelas::create([
                         'siswa_id' => $student->siswa_id,
@@ -581,21 +569,22 @@ class AdminController extends Controller
 
     public function getDataSiswa()
     {
-        $siswa = Siswa::with(['kelas.jurusan', 'akun', 'riwayatKelas' => function ($q) {
-            $q->latest();
-        }])->get()->map(function ($item) {
+        $siswa = Siswa::with([
+            'akun',
+            'riwayatKelas' => function ($q) {
+                $q->latest();
+            },
+            'riwayatKelas.kelas.jurusan'
+        ])->get()->map(function ($item) {
             $status = 'aktif';
             if ($item->riwayatKelas->isNotEmpty()) {
-                // Cari riwayat yang sesuai dengan kelas saat ini
-                $currentRiwayat = $item->riwayatKelas->where('kelas_id', $item->kelas_id)->first();
-                // Jika tidak ada, ambil yang paling terakhir
-                if (!$currentRiwayat) {
-                    $currentRiwayat = $item->riwayatKelas->first();
-                }
-                if ($currentRiwayat) {
-                    $status = $currentRiwayat->status;
-                }
+                $currentRiwayat = $item->riwayatKelas->firstWhere('status', 'aktif')
+                    ?? $item->riwayatKelas->first();
+
+                $status = $currentRiwayat ? $currentRiwayat->status : $status;
             }
+
+            $kelas = $item->kelas;
 
             return [
                 'siswa_id' => $item->siswa_id,
@@ -604,13 +593,13 @@ class AdminController extends Controller
                 'jenkel'   => $item->jenkel,
                 'status'   => $status,
 
-                'kelas'    => $item->kelas ? [
-                    'kelas_id' => $item->kelas->kelas_id,
-                    'tingkat'  => $item->kelas->tingkat,
-                    'paralel'  => $item->kelas->paralel,
-                    'jurusan'  => $item->kelas->jurusan ? [
-                        'jurusan_id' => $item->kelas->jurusan->jurusan_id,
-                        'nama_jurusan' => $item->kelas->jurusan->nama_jurusan,
+                'kelas'    => $kelas ? [
+                    'kelas_id' => $kelas->kelas_id,
+                    'tingkat'  => $kelas->tingkat,
+                    'paralel'  => $kelas->paralel,
+                    'jurusan'  => $kelas->jurusan ? [
+                        'jurusan_id' => $kelas->jurusan->jurusan_id,
+                        'nama_jurusan' => $kelas->jurusan->nama_jurusan,
                     ] : null,
                 ] : null,
 
@@ -627,19 +616,20 @@ class AdminController extends Controller
 
     public function updateDataSiswa(UpdateSiswaRequest $request)
     {
-        $siswa = Siswa::with(['akun', 'kelas'])->findOrFail($request->input('siswa_id'));
-        $oldKelasId = $siswa->kelas_id;
+        $siswa = Siswa::with(['akun', 'riwayatKelas.kelas'])->findOrFail($request->input('siswa_id'));
 
-        $siswa->fill($request->only(['nis', 'nama', 'jenkel', 'kelas_id']))->save();
+        $siswa->fill($request->only(['nis', 'nama', 'jenkel']))->save();
+
+        $activeRiwayat = $siswa->riwayatKelas->firstWhere('status', 'aktif')
+            ?? $siswa->riwayatKelas->sortByDesc('created_at')->first();
+        $oldKelasId = $activeRiwayat ? $activeRiwayat->kelas_id : null;
 
         // If kelas_id changed, update riwayat_kelas
         if ($request->has('kelas_id') && $oldKelasId != $request->input('kelas_id')) {
-            // Update current active record to "naik kelas"
             RiwayatKelas::where('siswa_id', $siswa->siswa_id)
                 ->where('status', 'aktif')
                 ->update(['status' => 'naik kelas']);
 
-            // Create new active record for new class
             RiwayatKelas::create([
                 'siswa_id' => $siswa->siswa_id,
                 'kelas_id' => $request->input('kelas_id'),
@@ -649,13 +639,17 @@ class AdminController extends Controller
 
         // Update status manual jika ada
         if ($request->has('status')) {
-            RiwayatKelas::updateOrCreate(
-                [
-                    'siswa_id' => $siswa->siswa_id,
-                    'kelas_id' => $siswa->kelas_id
-                ],
-                ['status' => $request->input('status')]
-            );
+            $targetKelasId = $request->input('kelas_id', $oldKelasId);
+
+            if ($targetKelasId) {
+                RiwayatKelas::updateOrCreate(
+                    [
+                        'siswa_id' => $siswa->siswa_id,
+                        'kelas_id' => $targetKelasId
+                    ],
+                    ['status' => $request->input('status')]
+                );
+            }
         }
 
         if ($siswa->akun) {
@@ -671,11 +665,14 @@ class AdminController extends Controller
             $siswa->akun->save();
         }
 
-        if ($siswa->kelas && $request->has('kelas')) {
-            $siswa->kelas->fill($request->input('kelas'))->save();
+        if ($request->has('kelas')) {
+            $kelas = $siswa->kelas;
+            if ($kelas) {
+                $kelas->fill($request->input('kelas'))->save();
+            }
         }
 
-        $siswa->load(['kelas', 'akun']);
+        $siswa->load(['akun', 'riwayatKelas.kelas']);
 
         return ApiResponse::success([
             'siswa' => $siswa,
@@ -702,7 +699,6 @@ class AdminController extends Controller
             'nis' => $request->input('nis'),
             'nama' => $request->input('nama'),
             'jenkel' => $request->input('jenkel'),
-            'kelas_id' => $request->input('kelas_id'),
             'akun_id' => $akun->akun_id,
         ]);
 
@@ -713,7 +709,7 @@ class AdminController extends Controller
             'status' => 'aktif'
         ]);
 
-        $siswa->load(['kelas', 'akun']);
+        $siswa->load(['akun', 'riwayatKelas.kelas']);
 
         return ApiResponse::success($siswa, 'Siswa berhasil ditambahkan');
     }

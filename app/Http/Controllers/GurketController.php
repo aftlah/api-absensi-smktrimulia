@@ -210,7 +210,7 @@ class GurketController extends Controller
             : Carbon::today()->toDateString();
 
         // Query absensi dengan relasi siswa, kelas, dan rencana_absensi
-        $query = Absensi::with(['siswa.kelas', 'rencanaAbsensi'])
+        $query = Absensi::with(['siswa.riwayatKelas.kelas', 'rencanaAbsensi'])
             ->whereHas('rencanaAbsensi', function ($q) use ($tanggal) {
                 $q->whereDate('tanggal', $tanggal);
             });
@@ -219,15 +219,14 @@ class GurketController extends Controller
         if ($user && $user->role === 'walas') {
             $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
             if ($walas && $walas->kelas) {
-                $kelasId = $walas->kelas->kelas_id; // override agar tidak bisa akses kelas lain
-                $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
-                    $q->where('kelas_id', $kelasId);
+                $kelasId = $walas->kelas->kelas_id;
+                $query->whereHas('siswa.riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
                 });
             }
         } elseif (!empty($kelasId)) {
-            // Untuk gurket: boleh filter kelas bebas
-            $query->whereHas('siswa.kelas', function ($q) use ($kelasId) {
-                $q->where('kelas_id', $kelasId);
+            $query->whereHas('siswa.riwayatKelas', function ($q) use ($kelasId) {
+                $q->where('kelas_id', $kelasId)->where('status', 'aktif');
             });
         }
 

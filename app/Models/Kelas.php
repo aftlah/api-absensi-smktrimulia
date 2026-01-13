@@ -16,7 +16,14 @@ class Kelas extends Model
 
     public function siswa()
     {
-        return $this->hasMany(Siswa::class, 'kelas_id', 'kelas_id');
+        return $this->hasManyThrough(
+            Siswa::class,
+            RiwayatKelas::class,
+            'kelas_id',
+            'siswa_id',
+            'kelas_id',
+            'siswa_id'
+        )->where('riwayat_kelas.status', 'aktif');
     }
 
     

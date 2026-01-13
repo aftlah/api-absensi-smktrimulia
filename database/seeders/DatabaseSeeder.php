@@ -95,7 +95,6 @@ class DatabaseSeeder extends Seeder
                 [
                     'nama' => 'Siswa ' . $i,
                     'akun_id' => $akun->akun_id,
-                    'kelas_id' => $kelas->kelas_id,
                     'jenkel' => $i % 2 == 0 ? 'L' : 'P'
                 ]
             );

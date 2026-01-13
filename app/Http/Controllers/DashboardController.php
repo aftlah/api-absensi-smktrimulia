@@ -18,7 +18,10 @@ class DashboardController extends Controller
         if ($user && $user->role === 'walas') {
             $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
             if ($walas && $walas->kelas) {
-                $totalSiswa = Siswa::where('kelas_id', $walas->kelas->kelas_id)->count();
+                $kelasId = $walas->kelas->kelas_id;
+                $totalSiswa = Siswa::whereHas('riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+                })->count();
             } else {
                 $totalSiswa = 0;
             }
@@ -56,9 +59,11 @@ class DashboardController extends Controller
         if ($user && $user->role === 'walas') {
             $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
             if ($walas && $walas->kelas) {
-                $query->where('kelas_id', $walas->kelas->kelas_id);
+                $kelasId = $walas->kelas->kelas_id;
+                $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+                });
             } else {
-                // Jika tidak ada kelas, kembalikan nol
                 return ApiResponse::success([
                     'total_hadir' => 0,
                     'siswa_hadir_hari_ini' => [],
@@ -173,7 +178,10 @@ class DashboardController extends Controller
         if ($user && $user->role === 'walas') {
             $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
             if ($walas && $walas->kelas) {
-                $query->where('kelas_id', $walas->kelas->kelas_id);
+                $kelasId = $walas->kelas->kelas_id;
+                $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+                });
             } else {
                 return ApiResponse::success([
                     'total_izin_sakit' => 0,
@@ -217,7 +225,10 @@ class DashboardController extends Controller
         if ($user && $user->role === 'walas') {
             $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
             if ($walas && $walas->kelas) {
-                $query->where('kelas_id', $walas->kelas->kelas_id);
+                $kelasId = $walas->kelas->kelas_id;
+                $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+                });
             } else {
                 return ApiResponse::success([
                     'total_izin' => 0,

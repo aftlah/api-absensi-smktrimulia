@@ -40,7 +40,7 @@ class UtillityController extends Controller
     {
         $query = $request->input('query');
 
-        $siswa = Siswa::with(['akun', 'kelas.jurusan', 'kelas.walas'])
+        $siswa = Siswa::with(['akun', 'riwayatKelas.kelas.jurusan', 'riwayatKelas.kelas.walas'])
             ->where(function ($q) use ($query) {
                 $q->where('nama', 'like', "%$query%")
                     ->orWhere('nis', 'like', "%$query%");
@@ -62,7 +62,7 @@ class UtillityController extends Controller
     {
         $user = Auth::user();
 
-        $siswa = Siswa::with(['akun', 'kelas.jurusan', 'kelas.walas'])
+        $siswa = Siswa::with(['akun', 'riwayatKelas.kelas.jurusan', 'riwayatKelas.kelas.walas'])
             ->where('akun_id', $user->akun_id)
             ->first();
 
