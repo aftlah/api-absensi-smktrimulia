@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\Akun;
 use App\Models\Siswa;
 use App\Models\Kelas;
+use App\Models\WaliKelas;
 use App\Models\Jurusan;
 use App\Models\RiwayatKelas;
 use Maatwebsite\Excel\Facades\Excel;
@@ -18,39 +19,45 @@ class ImportHelper
 {
     public function importSiswa($file)
     {
+        $defaultWali = WaliKelas::first();
+        if (!$defaultWali) {
+            throw new \RuntimeException('Tidak ada wali kelas terdaftar. Silakan buat minimal satu wali kelas terlebih dahulu sebelum import siswa.');
+        }
+
         $spreadsheet = IOFactory::load($file->getRealPath());
         $sheetNames = $spreadsheet->getSheetNames();
         $kelasMap = [];
+        $missingJurusan = [];
 
         foreach ($sheetNames as $sheetName) {
             try {
-                // Contoh nama sheet: "X TKJ", "X MP", "X BR"
-                $sheetParts = preg_split('/\s+/', trim($sheetName));
-                $tingkat = strtoupper($sheetParts[0] ?? 'X');
-                $jurusanKode = strtoupper($sheetParts[1] ?? 'UMUM');
+                $name = trim(preg_replace('/\s+/', ' ', $sheetName));
+                if (!preg_match('/^(X|XI|XII)\s+(.+)$/i', $name, $m)) {
+                    $kelasMap[$sheetName] = null;
+                    $missingJurusan[] = $name;
+                    continue;
+                }
+                $tingkat = strtoupper($m[1]);
+                $jurusanNama = trim($m[2]);
 
-                // Coba cari jurusan berdasarkan kode
-                $jurusan = Jurusan::where('nama_jurusan', $jurusanKode)->first();
+                $jurusan = Jurusan::whereRaw('LOWER(nama_jurusan) = ?', [strtolower($jurusanNama)])->first();
 
-                // Jika jurusan tidak ditemukan, buat otomatis
                 if (!$jurusan) {
-                    $jurusan = Jurusan::create([
-                        'nama_jurusan' => $jurusanKode,
-                    ]);
+                    $kelasMap[$sheetName] = null;
+                    $missingJurusan[] = $jurusanNama;
+                    continue;
                 }
 
-                // Coba cari kelas dengan tingkat + jurusan
                 $kelas = Kelas::where('tingkat', $tingkat)
                     ->where('jurusan_id', $jurusan->jurusan_id)
                     ->first();
 
-                // Jika kelas tidak ditemukan, buat otomatis
                 if (!$kelas) {
                     $kelas = Kelas::create([
                         'tingkat' => $tingkat,
                         'jurusan_id' => $jurusan->jurusan_id,
                         'paralel' => 1,
-                        'walas_id' => 1,
+                        'walas_id' => $defaultWali->walas_id,
                     ]);
                 }
 
@@ -59,6 +66,10 @@ class ImportHelper
                 $kelasMap[$sheetName] = null;
                 continue;
             }
+        }
+
+        if (!empty($missingJurusan)) {
+            throw new \RuntimeException('Jurusan tidak ditemukan untuk sheet: ' . implode(', ', $missingJurusan));
         }
 
         // Import semua sheet

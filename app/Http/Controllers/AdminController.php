@@ -150,6 +150,7 @@ class AdminController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_jurusan' => 'required|string|max:255|unique:jurusan,nama_jurusan',
         ]);
+
         if ($validator->fails()) {
             return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
@@ -211,6 +212,13 @@ class AdminController extends Controller
             return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
+        $walasId = $request->input('walas_id');
+        $walasSudahPunyaKelas = Kelas::where('walas_id', $walasId)->exists();
+
+        if ($walasSudahPunyaKelas) {
+            return ApiResponse::error('Wali kelas ini sudah mengampu kelas lain dan hanya boleh memegang satu kelas.', null, 400);
+        }
+
         $kelas = Kelas::create([
             'tingkat' => $request->input('tingkat'),
             'paralel' => $request->input('paralel'),
@@ -235,6 +243,15 @@ class AdminController extends Controller
         ]);
         if ($validator->fails()) {
             return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
+
+        $walasIdBaru = $request->input('walas_id');
+        $walasDipakaiKelasLain = Kelas::where('walas_id', $walasIdBaru)
+            ->where('kelas_id', '!=', $kls->kelas_id)
+            ->exists();
+
+        if ($walasDipakaiKelasLain) {
+            return ApiResponse::error('Wali kelas ini sudah mengampu kelas lain dan hanya boleh memegang satu kelas.', null, 400);
         }
 
         $kls->tingkat = $request->input('tingkat');
@@ -539,6 +556,12 @@ class AdminController extends Controller
     public function deleteWaliKelas($walas)
     {
         $wk = WaliKelas::findOrFail($walas);
+        $kelasTerhubung = Kelas::where('walas_id', $wk->walas_id)->exists();
+
+        if ($kelasTerhubung) {
+            return ApiResponse::error('Gagal menghapus: wali kelas masih terhubung dengan kelas.', null, 400);
+        }
+
         $wk->delete();
         return ApiResponse::success(null, 'Wali kelas berhasil dihapus');
     }
@@ -794,6 +817,12 @@ class AdminController extends Controller
     public function deleteGuruPiket($gurket)
     {
         $gp = GuruPiket::findOrFail($gurket);
+        $jadwalTerhubung = JadwalPiket::where('gurket_id', $gp->gurket_id)->exists();
+
+        if ($jadwalTerhubung) {
+            return ApiResponse::error('Gagal menghapus guru piket karena masih terhubung dengan jadwal piket.', null, 400);
+        }
+
         $gp->delete();
         return ApiResponse::success(null, 'Guru piket berhasil dihapus');
     }
