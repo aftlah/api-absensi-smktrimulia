@@ -10,7 +10,6 @@ class ApiResponse
             'responseStatus' => true,
             'responseMessage' => $message,
             'responseData' => $data,
-            // 'errors' => null
         ], $code);
     }
 
