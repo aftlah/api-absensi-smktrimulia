@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Validator;
 class AbsensiController extends Controller
 {
     // haversine formula
+    // $lat1, $lan1 = koordinat dari siswa
+    // $lat2, $lon2 = koordinat dari sekolah
     private function hitungJarak($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000;
@@ -56,6 +58,8 @@ class AbsensiController extends Controller
         // if ($currentTime->lt($jamMasukToday)) {
         //     return ApiResponse::error('Absensi datang hanya bisa dilakukan setelah jam ' . $jamMasukToday->format('H:i'), null, 422);
         // }
+
+        // hasil meter dari jarak antara siswa dan sekolah
         $jarak = $this->hitungJarak(
             $request->latitude,
             $request->longitude,
