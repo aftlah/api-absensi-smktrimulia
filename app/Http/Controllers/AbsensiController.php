@@ -38,6 +38,12 @@ class AbsensiController extends Controller
 
         $user = Auth::user();
 
+        $siswa = $user->siswa;
+        $kelas = $siswa ? $siswa->kelas : null;
+        if (!$kelas) {
+            return ApiResponse::error('Kelas siswa belum diatur', null, 422);
+        }
+
         if ($user->role !== 'siswa') {
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
@@ -77,8 +83,10 @@ class AbsensiController extends Controller
 
         $hariIni = now()->toDateString();
         $rencana = RencanaAbsensi::whereDate('tanggal', $hariIni)
-            ->where('kelas_id', $user->siswa->kelas_id)
+            ->where('kelas_id', $kelas->kelas_id)
             ->first();
+
+        // dd($rencana);
 
         if (!$rencana) {
             return ApiResponse::error('Belum ada rencana absensi untuk hari ini', null, 422);
@@ -120,6 +128,11 @@ class AbsensiController extends Controller
     public function absenPulang(AbsensiRequest $request)
     {
         $user = Auth::user();
+        $siswa = $user->siswa;
+        $kelas = $siswa ? $siswa->kelas : null;
+        if (!$kelas) {
+            return ApiResponse::error('Kelas siswa belum diatur', null, 422);
+        }
         if ($user->role !== 'siswa') {
             return ApiResponse::error('Hanya siswa yang bisa absen', null, 403);
         }
@@ -157,9 +170,7 @@ class AbsensiController extends Controller
 
         // Cari rencana absensi hari ini
         $rencana = RencanaAbsensi::whereDate('tanggal', now()->toDateString())
-            ->whereHas('kelas', function ($q) use ($user) {
-                $q->where('kelas_id', $user->siswa->kelas_id);
-            })
+            ->where('kelas_id', $kelas->kelas_id)
             ->first();
 
         if (!$rencana) {
@@ -202,13 +213,19 @@ class AbsensiController extends Controller
     {
         $user = Auth::user();
 
+        $siswa = $user->siswa;
+        $kelas = $siswa ? $siswa->kelas : null;
+        if (!$kelas) {
+            return ApiResponse::error('Kelas siswa belum diatur', null, 422);
+        }
+
         if ($user->role !== 'siswa') {
             return ApiResponse::error('Hanya siswa yang bisa mengajukan izin sakit', null, 403);
         }
 
         // Cari rencana absensi pada tanggal yang diminta
         $rencana = RencanaAbsensi::whereDate('tanggal', $request->tanggal)
-            ->where('kelas_id', $user->siswa->kelas_id)
+            ->where('kelas_id', $kelas->kelas_id)
             ->first();
 
         if (!$rencana) {
