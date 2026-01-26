@@ -110,6 +110,8 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
 
     // reset pw
     Route::post('/akun/reset-password', [AuthController::class, 'resetPassword']);
+
+    Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
 });
 
 // Semua role (termasuk siswa) butuh membaca pengaturan
@@ -121,7 +123,6 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas,siswa'])->group(function
 Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::get('/guru/laporan', [GurketController::class, 'laporan']);
     Route::get('/walas/info', [GurketController::class, 'walasInfo']);
-    Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
 
     Route::put('/profil', [GurketController::class, 'updateProfil']);
 
