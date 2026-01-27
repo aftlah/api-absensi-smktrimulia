@@ -12,9 +12,9 @@ use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 // Auth
 // testting hello world
-// Route::get('/', function () {
-//     return response()->json(['message' => 'Hello World!']);
-// });
+Route::get('/', function () {
+    return response()->json(['message' => 'API Absensi SMK Trimulia is Running']);
+});
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
