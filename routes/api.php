@@ -112,6 +112,20 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::post('/akun/reset-password', [AuthController::class, 'resetPassword']);
 
     Route::get('/aktivitas-terbaru', [AktivitasController::class, 'index']);
+
+    Route::prefix('/absensi')->group(function () {
+        Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
+        Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
+        Route::post('/updateAbsensiStatus', [GurketController::class, 'updateAbsensiStatus']);
+        Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
+        Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
+
+        Route::prefix('/rencana')->group(function () {
+            Route::get('/', [GurketController::class, 'getRencanaAbsensi']);
+            Route::post('/', [GurketController::class, 'tambahRencanaAbsensi']);
+            Route::post('/update-status', [GurketController::class, 'updateRencanaStatusHari']);
+        });
+    });
 });
 
 // Semua role (termasuk siswa) butuh membaca pengaturan
@@ -127,19 +141,6 @@ Route::middleware(['auth:api', 'role:gurket,walas'])->group(function () {
     Route::put('/profil', [GurketController::class, 'updateProfil']);
 
     // Route::prefix('kelola-datasiswa')->group(function () {});
-    Route::prefix('/absensi')->group(function () {
-        Route::get('/siswaIzinSakit', [GurketController::class, 'getSiswaIzinSakit']);
-        Route::post('/updateStatus', [GurketController::class, 'updateStatusIzinSakit']);
-        Route::post('/updateAbsensiStatus', [GurketController::class, 'updateAbsensiStatus']);
-        Route::get('/hari-ini', [GurketController::class, 'getAbsensiSiswaHariIni']);
-        Route::get('/lihat', [GurketController::class, 'showAbsensiSiswa']);
-
-        Route::prefix('/rencana')->group(function () {
-            Route::get('/', [GurketController::class, 'getRencanaAbsensi']);
-            Route::post('/', [GurketController::class, 'tambahRencanaAbsensi']);
-            Route::post('/update-status', [GurketController::class, 'updateRencanaStatusHari']);
-        });
-    });
 });
 
 
