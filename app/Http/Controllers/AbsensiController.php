@@ -76,7 +76,7 @@ class AbsensiController extends Controller
 
         if ($jarak > $pengaturan->radius_meter) {
             return ApiResponse::error('Di luar radius absensi', [
-                'distance' => (int) round($jarak),
+                'distance' => round($jarak, 1),
                 'radius' => (int) $pengaturan->radius_meter,
             ], 422);
         }
@@ -163,7 +163,7 @@ class AbsensiController extends Controller
 
         if ($jarak > $pengaturan->radius_meter) {
             return ApiResponse::error('Di luar radius absensi', [
-                'distance' => (int) round($jarak),
+                'distance' => round($jarak, 1),
                 'radius' => (int) $pengaturan->radius_meter,
             ], 422);
         }
