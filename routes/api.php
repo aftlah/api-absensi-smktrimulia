@@ -99,7 +99,7 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::get('/total-siswa', [DashboardController::class, 'totalSiswa']);
     Route::get('/hadir-hariini', [DashboardController::class, 'hadirHariIni']);
     Route::get('/terlambat-hariini', [DashboardController::class, 'terlambatHariIni']);
-    Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
+    // Route::get('/izinsakit-hariini', [DashboardController::class, 'izinSakitHariIni']);
     Route::get('/izin-hariini', [DashboardController::class, 'izinHariIni']);
     Route::get('/sakit-hariini', [DashboardController::class, 'sakitHariIni']);
     // Route::get('/guru/rekap', [GurketController::class, 'rekap']);

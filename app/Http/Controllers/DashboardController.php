@@ -71,13 +71,15 @@ class DashboardController extends Controller
             }
         }
 
-        $siswaHadir = $query->whereHas('absensi', function ($absensiQuery) use ($hariIni) {
-            $absensiQuery
-                ->where('status', 'hadir')
-                ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
-                    $rencanaQuery->where('tanggal', $hariIni);
-                });
-        })
+        // jika admin
+        $siswaHadir = $query
+            ->whereHas('absensi', function ($absensiQuery) use ($hariIni) {
+                $absensiQuery
+                    ->where('status', 'hadir')
+                    ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+                        $rencanaQuery->where('tanggal', $hariIni);
+                    });
+            })
             ->with([
                 'absensi' => function ($absensiQuery) use ($hariIni) {
                     $absensiQuery
@@ -87,7 +89,7 @@ class DashboardController extends Controller
                         })
                         ->with('rencanaAbsensi');
                 },
-                'kelas'
+                'kelas',
             ])
             ->get();
 
@@ -96,24 +98,6 @@ class DashboardController extends Controller
             'siswa_hadir_hari_ini' => $siswaHadir
         ], 'Data siswa hadir hari ini berhasil diambil');
     }
-
-
-    // public function terlambatHariIni()
-    // {
-    //     $totalTerlambat = Siswa::whereHas('absensi', function ($q) {
-    //         $q->whereHas('rencanaAbsensi', function ($q) {
-    //             $q->where('tanggal', now()->toDateString());
-    //         })->where('status', 'terlambat');
-    //     })
-    //         ->orWhereHas('rencanaAbsensi', function ($q) {
-    //             $q->where('tanggal', now()->toDateString())
-    //                 ->where('status', 'terlambat');
-    //         })
-    //         ->count();
-    //     return ApiResponse::success([
-    //         'siswa_terlambat_hariini' => $totalTerlambat,
-    //     ], 'Total siswa terlambat hari ini berhasil diambil');
-    // }
 
     public function terlambatHariIni()
     {
@@ -163,62 +147,51 @@ class DashboardController extends Controller
 
     // public function izinSakitHariIni()
     // {
-    //     $totalIzinSakit = Siswa::whereHas('absensi', function ($q) {
-    //         $q->where('tanggal', now()->toDateString())
-    //             ->whereIn('status', ['pending']);
-    //     })->count();
+    //     $hariIni = now()->toDateString();
+    //     $user = Auth::user();
+
+    //     $query = Siswa::query();
+
+    //     if ($user && $user->role === 'walas') {
+    //         $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
+    //         if ($walas && $walas->kelas) {
+    //             $kelasId = $walas->kelas->kelas_id;
+    //             $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
+    //                 $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+    //             });
+    //         } else {
+    //             return ApiResponse::success([
+    //                 'total_izin_sakit' => 0,
+    //                 'siswa_izin_sakit_hari_ini' => [],
+    //             ], 'Data siswa izin/sakit hari ini berhasil diambil');
+    //         }
+    //     }
+
+    //     $siswaIzinSakit = $query->whereHas('absensi', function ($absensiQuery) use ($hariIni) {
+    //         $absensiQuery
+    //             ->whereIn('status', ['izin', 'sakit']) // sesuaikan dengan status di DB kamu
+    //             ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+    //                 $rencanaQuery->where('tanggal', $hariIni);
+    //             });
+    //     })
+    //         ->with([
+    //             'absensi' => function ($absensiQuery) use ($hariIni) {
+    //                 $absensiQuery->whereIn('status', ['izin', 'sakit'])
+    //                     ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
+    //                         $rencanaQuery->where('tanggal', $hariIni);
+    //                     })
+    //                     ->with('rencanaAbsensi');
+    //             },
+    //             'kelas'
+    //         ])
+    //         ->get();
+
     //     return ApiResponse::success([
-    //         'siswa_izin_sakit_hariini' => $totalIzinSakit,
-    //     ], 'Total siswa izin sakit hari ini berhasil diambil');
+    //         'total_izin_sakit' => $siswaIzinSakit->count(),
+    //         'siswa_izin_sakit_hari_ini' => $siswaIzinSakit
+    //     ], 'Data siswa izin/sakit hari ini berhasil diambil');
     // }
-    public function izinSakitHariIni()
-    {
-        $hariIni = now()->toDateString();
-        $user = Auth::user();
 
-        $query = Siswa::query();
-
-        if ($user && $user->role === 'walas') {
-            $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
-            if ($walas && $walas->kelas) {
-                $kelasId = $walas->kelas->kelas_id;
-                $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
-                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
-                });
-            } else {
-                return ApiResponse::success([
-                    'total_izin_sakit' => 0,
-                    'siswa_izin_sakit_hari_ini' => [],
-                ], 'Data siswa izin/sakit hari ini berhasil diambil');
-            }
-        }
-
-        $siswaIzinSakit = $query->whereHas('absensi', function ($absensiQuery) use ($hariIni) {
-            $absensiQuery
-                ->whereIn('status', ['izin', 'sakit']) // sesuaikan dengan status di DB kamu
-                ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
-                    $rencanaQuery->where('tanggal', $hariIni);
-                });
-        })
-            ->with([
-                'absensi' => function ($absensiQuery) use ($hariIni) {
-                    $absensiQuery->whereIn('status', ['izin', 'sakit'])
-                        ->whereHas('rencanaAbsensi', function ($rencanaQuery) use ($hariIni) {
-                            $rencanaQuery->where('tanggal', $hariIni);
-                        })
-                        ->with('rencanaAbsensi');
-                },
-                'kelas'
-            ])
-            ->get();
-
-        return ApiResponse::success([
-            'total_izin_sakit' => $siswaIzinSakit->count(),
-            'siswa_izin_sakit_hari_ini' => $siswaIzinSakit
-        ], 'Data siswa izin/sakit hari ini berhasil diambil');
-    }
-
-    // Tambahan: pisahkan izin dan sakit untuk semua role, ter-filter walas
     public function izinHariIni()
     {
         $hariIni = now()->toDateString();
