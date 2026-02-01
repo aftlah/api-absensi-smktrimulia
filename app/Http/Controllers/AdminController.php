@@ -152,7 +152,7 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+            return ApiResponse::error('Nama jurusan sudah ada', $validator->errors(), 422);
         }
 
         $jurusan = Jurusan::create([
@@ -494,7 +494,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+            return ApiResponse::error('NIP tersebut sudah terdaftar sebagai wali kelas', $validator->errors(), 422);
         }
 
         $nip = $request->input('nip');
@@ -755,7 +755,7 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+            return ApiResponse::error('NIP tersebut sudah terdaftar sebagai guru piket', $validator->errors(), 422);
         }
 
         $nip = $request->input('nip');
