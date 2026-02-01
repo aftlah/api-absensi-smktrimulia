@@ -60,7 +60,7 @@ class GurketController extends Controller
 
     public function getSiswaIzinSakit()
     {
-        $siswaIzinSakit = Absensi::with(['siswa.kelas.jurusan'])
+        $siswaIzinSakit = Absensi::with(['siswa.riwayatKelas.kelas.jurusan'])
             ->whereIn('status', ['izin', 'sakit'])
             ->where('is_verif', 0)
             ->get();
@@ -184,7 +184,7 @@ class GurketController extends Controller
         $hariIni = Carbon::today()->toDateString();
 
         $absensi = Absensi::with([
-            'siswa.kelas',
+            'siswa.riwayatKelas.kelas',
             'rencanaAbsensi'
         ])
             ->whereHas('rencanaAbsensi', function ($query) use ($hariIni) {
@@ -374,7 +374,7 @@ class GurketController extends Controller
     {
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'tanggal' => 'required|date',
-            'status_hari' => 'required|in:normal,libur,acara khusus',
+            'status_hari' => 'required|in:normal,libur',
             'keterangan' => 'nullable|string',
         ]);
         if ($validator->fails()) {

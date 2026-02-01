@@ -21,7 +21,7 @@ class AbsensiController extends Controller
     // $lat2, $lon2 = koordinat dari sekolah
     private function hitungJarak($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371000;
+        $earthRadius = 6371000; // jari-jari bumi dalam meter
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
 
@@ -29,8 +29,7 @@ class AbsensiController extends Controller
             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
             sin($dLon / 2) * sin($dLon / 2);
 
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        return $earthRadius * $c;
+        return 2 * $earthRadius * asin(sqrt($a));
     }
 
     public function absen(AbsensiRequest $request)

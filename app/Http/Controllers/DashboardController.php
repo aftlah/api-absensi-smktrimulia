@@ -89,7 +89,7 @@ class DashboardController extends Controller
                         })
                         ->with('rencanaAbsensi');
                 },
-                'kelas',
+                'riwayatKelas.kelas',
             ])
             ->get();
 
@@ -135,7 +135,7 @@ class DashboardController extends Controller
                         })
                         ->with('rencanaAbsensi');
                 },
-                'kelas'
+                'riwayatKelas.kelas'
             ])
             ->get();
 
@@ -228,7 +228,7 @@ class DashboardController extends Controller
                         })
                         ->with('rencanaAbsensi');
                 },
-                'kelas'
+                'riwayatKelas.kelas'
             ])
             ->get();
 
@@ -274,7 +274,7 @@ class DashboardController extends Controller
                         })
                         ->with('rencanaAbsensi');
                 },
-                'kelas'
+                'riwayatKelas.kelas'
             ])
             ->get();
 

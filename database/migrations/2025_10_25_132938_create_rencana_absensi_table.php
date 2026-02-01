@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('rencana_absensi', function (Blueprint $table) {
             $table->id('rensi_id');
             $table->date('tanggal');
-            $table->enum('status_hari', ['normal', 'libur', 'acara khusus'])->default('normal');
+            $table->enum('status_hari', ['normal', 'libur'])->default('normal');
             $table->string('keterangan')->nullable();
             // fk kelas
             $table->unsignedBigInteger('kelas_id');
