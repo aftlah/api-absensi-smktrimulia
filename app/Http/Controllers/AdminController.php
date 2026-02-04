@@ -581,6 +581,7 @@ class AdminController extends Controller
             return ApiResponse::success([
                 'kelas_terdaftar' => $hasilImport['kelas_terdaftar'],
                 'data_siswa' => $hasilImport['data_siswa'],
+                'nis_duplikat' => $hasilImport['nis_duplikat'] ?? [],
             ], 'Data siswa berhasil diimpor');
         } catch (\Exception $e) {
             return ApiResponse::error(

@@ -72,14 +72,17 @@ class ImportHelper
             throw new \RuntimeException('Jurusan tidak ditemukan untuk sheet: ' . implode(', ', $missingJurusan));
         }
 
+        $existingNis = Siswa::pluck('nis')->toArray();
+
         // Import semua sheet
-        $importer = new SiswaMultiSheetImport($sheetNames, $kelasMap);
+        $importer = new SiswaMultiSheetImport($sheetNames, $kelasMap, $existingNis);
         Excel::import($importer, $file);
 
         return [
             'status' => 'success',
             'kelas_terdaftar' => $kelasMap,
             'data_siswa' => $importer->getImportedData(),
+            'nis_duplikat' => $importer->getDuplicateNis(),
         ];
     }
 }
@@ -92,11 +95,14 @@ class SiswaMultiSheetImport implements WithMultipleSheets
     private $sheetNames;
     private $kelasMap;
     private $importedData = [];
+    private $existingNis = [];
+    private $duplicateNis = [];
 
-    public function __construct(array $sheetNames, array $kelasMap)
+    public function __construct(array $sheetNames, array $kelasMap, array $existingNis = [])
     {
         $this->sheetNames = $sheetNames;
         $this->kelasMap = $kelasMap;
+        $this->existingNis = $existingNis;
     }
 
     public function sheets(): array
@@ -104,7 +110,7 @@ class SiswaMultiSheetImport implements WithMultipleSheets
         $sheets = [];
 
         foreach ($this->sheetNames as $name) {
-            $sheetImport = new SiswaSheetImport($name, $this->kelasMap[$name]);
+            $sheetImport = new SiswaSheetImport($name, $this->kelasMap[$name], $this->existingNis);
             $sheetImport->setParent($this);
             $sheets[$name] = $sheetImport;
         }
@@ -125,6 +131,18 @@ class SiswaMultiSheetImport implements WithMultipleSheets
     {
         return $this->importedData;
     }
+
+    public function addDuplicateNis($nis)
+    {
+        if (!in_array($nis, $this->duplicateNis, true)) {
+            $this->duplicateNis[] = $nis;
+        }
+    }
+
+    public function getDuplicateNis()
+    {
+        return $this->duplicateNis;
+    }
 }
 
 /**
@@ -135,11 +153,13 @@ class SiswaSheetImport implements ToCollection
     private $kelas;
     private $kelasId;
     private $parent;
+    private $existingNis = [];
 
-    public function __construct($kelas, $kelasId)
+    public function __construct($kelas, $kelasId, array $existingNis = [])
     {
         $this->kelas = $kelas;
         $this->kelasId = $kelasId;
+        $this->existingNis = $existingNis;
     }
 
     public function setParent(SiswaMultiSheetImport $parent)
@@ -163,6 +183,13 @@ class SiswaSheetImport implements ToCollection
             $jk = trim($row[3] ?? '');
 
             if (!$nomorInduk || !$nama) continue;
+
+            if (in_array($nomorInduk, $this->existingNis, true)) {
+                if ($this->parent) {
+                    $this->parent->addDuplicateNis($nomorInduk);
+                }
+                continue;
+            }
 
             // Buat akun siswa
             $akun = Akun::firstOrCreate(
