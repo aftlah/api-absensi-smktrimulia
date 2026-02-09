@@ -49,14 +49,6 @@ try {
             continue;
         }
 
-        // Cek apakah username sudah ada di admin
-        $existingAdmin = Admin::where('nip', $adminData['username'])->first();
-        
-        if ($existingAdmin) {
-            echo "⚠️  Admin dengan username '{$adminData['username']}' sudah ada, dilewati.\n";
-            continue;
-        }
-
         // Buat akun
         $akun = Akun::create([
             'username' => $adminData['username'],
@@ -64,9 +56,9 @@ try {
             'role' => 'admin',
         ]);
 
-        // Buat admin (menggunakan username di kolom nip)
+        // Buat admin (dengan username)
         $admin = Admin::create([
-            'nip' => $adminData['username'],
+            'username' => $adminData['username'],
             'nama' => $adminData['nama'],
             'akun_id' => $akun->akun_id,
         ]);
