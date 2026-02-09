@@ -308,4 +308,39 @@ class AbsensiController extends Controller
 
         return ApiResponse::success($riwayat, 'Riwayat absensi hari ini berhasil diambil');
     }
+
+    // Cek jarak siswa dari sekolah
+    public function cekJarak(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
+
+        $pengaturan = Pengaturan::first();
+        if (!$pengaturan) {
+            return ApiResponse::error('Pengaturan sekolah belum tersedia', null, 422);
+        }
+
+        $jarak = $this->hitungJarak(
+            $request->latitude,
+            $request->longitude,
+            $pengaturan->latitude,
+            $pengaturan->longitude
+        );
+
+        $dalamRadius = $jarak <= $pengaturan->radius_meter;
+        $sisaMeter = $dalamRadius ? 0 : round($jarak - $pengaturan->radius_meter, 1);
+
+        return ApiResponse::success([
+            'distance' => round($jarak, 1),
+            'radius' => (int) $pengaturan->radius_meter,
+            'dalam_radius' => $dalamRadius,
+            'sisa_meter' => $sisaMeter,
+        ], 'Jarak berhasil dihitung');
+    }
 }

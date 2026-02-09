@@ -29,6 +29,7 @@ Route::middleware(['auth:api', 'role:siswa'])->group(function () {
         Route::post('/', [AbsensiController::class, 'absen']);
         Route::post('/pulang', [AbsensiController::class, 'absenPulang']);
         Route::post('/izinsakit', [AbsensiController::class, 'izinSakit']);
+        Route::post('/cek-jarak', [AbsensiController::class, 'cekJarak']);
         Route::get('/riwayat', [AbsensiController::class, 'riwayat']);
         Route::get('/hariini', [AbsensiController::class, 'hariIni']);
     });

@@ -156,6 +156,8 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         $nama = null;
+        $kelas = null;
+        
         if ($user->role === 'admin') {
             $adm = Admin::where('akun_id', $user->akun_id)->first();
             $nama = $adm?->nama;
@@ -166,18 +168,50 @@ class AuthController extends Controller
             $wk = WaliKelas::where('akun_id', $user->akun_id)->first();
             $nama = $wk?->nama;
         } elseif ($user->role === 'siswa') {
-            $sw = Siswa::where('akun_id', $user->akun_id)->first();
+            $sw = Siswa::with(['riwayatKelas' => function($q) {
+                $q->where('status', 'aktif')
+                  ->with(['kelas.jurusan', 'kelas.walas'])
+                  ->latest();
+            }])->where('akun_id', $user->akun_id)->first();
+            
             $nama = $sw?->nama;
+            
+            // Ambil kelas aktif dari riwayat kelas
+            if ($sw && $sw->riwayatKelas->isNotEmpty()) {
+                $riwayatAktif = $sw->riwayatKelas->first();
+                if ($riwayatAktif && $riwayatAktif->kelas) {
+                    $kelas = [
+                        'kelas_id' => $riwayatAktif->kelas->kelas_id,
+                        'tingkat' => $riwayatAktif->kelas->tingkat,
+                        'paralel' => $riwayatAktif->kelas->paralel,
+                        'jurusan' => $riwayatAktif->kelas->jurusan ? [
+                            'jurusan_id' => $riwayatAktif->kelas->jurusan->jurusan_id,
+                            'nama_jurusan' => $riwayatAktif->kelas->jurusan->nama_jurusan,
+                        ] : null,
+                        'walas' => $riwayatAktif->kelas->walas ? [
+                            'walas_id' => $riwayatAktif->kelas->walas->walas_id,
+                            'nama' => $riwayatAktif->kelas->walas->nama,
+                            'username' => $riwayatAktif->kelas->walas->username,
+                        ] : null,
+                    ];
+                }
+            }
         }
 
-        return ApiResponse::success([
+        $response = [
             'akun_id' => $user->akun_id,
             'username' => $user->username,
             'role' => $user->role,
             'nama' => $nama,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
-        ], 'Profil berhasil diambil');
+        ];
+        
+        if ($kelas) {
+            $response['kelas'] = $kelas;
+        }
+
+        return ApiResponse::success($response, 'Profil berhasil diambil');
     }
 
     public function resetPassword(Request $request)
