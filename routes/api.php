@@ -11,6 +11,15 @@ use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 // Auth
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'API is running',
+        'timestamp' => now()->toIso8601String()
+    ]);
+});
+
 // testting hello world
 Route::get('/', function () {
     return response()->json(['message' => 'API Absensi SMK Trimulia is Running']);

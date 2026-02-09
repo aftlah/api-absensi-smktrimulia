@@ -23,3 +23,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /schema
+
+# React build files (jangan ignore, ini hasil build dari web-absensi-smktrimulia)
+# /public/index.html
+# /public/assets
+# /public/vite.svg
