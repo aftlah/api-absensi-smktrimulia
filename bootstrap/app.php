@@ -16,12 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->group('api', [
+            \App\Http\Middleware\JwtCookieMiddleware::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'jwt.cookie' => \App\Http\Middleware\JwtCookieMiddleware::class,
             'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
             'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
             'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,

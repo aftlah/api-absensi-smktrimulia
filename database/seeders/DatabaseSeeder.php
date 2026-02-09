@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         );
 
         Admin::firstOrCreate(
-            ['nip' => 'ADM001'],
+            ['username' => 'ADM001'],
             ['nama' => 'Kepala Sekolah (Administrator)', 'akun_id' => $adminAkun->akun_id]
         );
 
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $guru = GuruPiket::firstOrCreate(
-            ['nip' => 'GP001'],
+            ['username' => 'GP001'],
             ['nama' => 'Guru Piket 1', 'akun_id' => $guruAkun->akun_id]
         );
 
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $waliKelas = WaliKelas::firstOrCreate(
-            ['nip' => 'WL001'],
+            ['username' => 'WL001'],
             ['nama' => 'Wali Kelas XI OTKP', 'akun_id' => $walasAkun->akun_id]
         );
 

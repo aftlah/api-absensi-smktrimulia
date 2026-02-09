@@ -11,6 +11,7 @@ use App\Models\GuruPiket;
 use App\Models\WaliKelas;
 use App\Models\Siswa;
 use App\Models\Akun;
+use App\Models\JadwalPiket;
 
 
 class AuthController extends Controller
@@ -25,12 +26,72 @@ class AuthController extends Controller
 
         $user = Auth::user();
         $nama = null;
+        
         if ($user->role === 'admin') {
             $adm = Admin::where('akun_id', $user->akun_id)->first();
             $nama = $adm?->nama;
         } elseif ($user->role === 'gurket') {
             $gp = GuruPiket::where('akun_id', $user->akun_id)->first();
             $nama = $gp?->nama;
+            
+            // Validasi jadwal piket untuk hari ini
+            if ($gp) {
+                $today = date('Y-m-d');
+                $jadwalHariIni = JadwalPiket::where('gurket_id', $gp->gurket_id)
+                    ->where('tanggal', $today)
+                    ->first();
+                
+                if (!$jadwalHariIni) {
+                    // Cari siapa yang jadi jadwal piket hari ini
+                    $jadwalPiketHariIni = JadwalPiket::with('guruPiket')
+                        ->where('tanggal', $today)
+                        ->first();
+                    
+                    $pesanPiketHariIni = '';
+                    if ($jadwalPiketHariIni && $jadwalPiketHariIni->guruPiket) {
+                        $pesanPiketHariIni = " Guru piket hari ini adalah {$jadwalPiketHariIni->guruPiket->nama}.";
+                    } else {
+                        $pesanPiketHariIni = " Tidak ada guru piket yang terjadwal untuk hari ini.";
+                    }
+                    
+                    // Cari jadwal terdekat untuk guru piket ini
+                    $jadwalTerdekat = JadwalPiket::where('gurket_id', $gp->gurket_id)
+                        ->where('tanggal', '>=', $today)
+                        ->orderBy('tanggal', 'asc')
+                        ->first();
+                    
+                    $pesanJadwalTerdekat = '';
+                    if ($jadwalTerdekat) {
+                        $tanggalTerdekat = date('d-m-Y', strtotime($jadwalTerdekat->tanggal));
+                        $hariTerdekat = $this->getNamaHari($jadwalTerdekat->tanggal);
+                        $pesanJadwalTerdekat = " Jadwal piket Anda berikutnya adalah pada {$hariTerdekat}, {$tanggalTerdekat}.";
+                    } else {
+                        $pesanJadwalTerdekat = " Anda belum memiliki jadwal piket yang terdaftar. Silakan hubungi admin untuk mengatur jadwal piket Anda.";
+                    }
+                    
+                    $hariIni = $this->getNamaHari($today);
+                    $tanggalIni = date('d-m-Y');
+                    
+                    return ApiResponse::error(
+                        "Akses Ditolak - Bukan Jadwal Piket Anda",
+                        [
+                            'detail' => "Anda tidak terjadwal sebagai guru piket pada {$hariIni}, {$tanggalIni}.{$pesanPiketHariIni}{$pesanJadwalTerdekat}",
+                            'hari_ini' => $hariIni,
+                            'tanggal_ini' => $tanggalIni,
+                            'guru_piket_hari_ini' => $jadwalPiketHariIni ? [
+                                'nama' => $jadwalPiketHariIni->guruPiket->nama,
+                                'username' => $jadwalPiketHariIni->guruPiket->username
+                            ] : null,
+                            'jadwal_terdekat' => $jadwalTerdekat ? [
+                                'tanggal' => $jadwalTerdekat->tanggal,
+                                'hari' => $this->getNamaHari($jadwalTerdekat->tanggal),
+                                'tanggal_formatted' => date('d-m-Y', strtotime($jadwalTerdekat->tanggal))
+                            ] : null
+                        ],
+                        403
+                    );
+                }
+            }
         } elseif ($user->role === 'walas') {
             $wk = WaliKelas::where('akun_id', $user->akun_id)->first();
             $nama = $wk?->nama;
@@ -39,10 +100,20 @@ class AuthController extends Controller
             $nama = $sw?->nama;
         }
 
+        // Set httpOnly cookie untuk keamanan
+        $cookie = cookie(
+            'auth_token',
+            $token,
+            Auth::factory()->getTTL(), // TTL dalam menit
+            '/', // path
+            null, // domain
+            true, // secure (HTTPS only)
+            true, // httpOnly
+            false, // raw
+            'strict' // sameSite
+        );
+
         return ApiResponse::success([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => [
                 'akun_id' => $user->akun_id,
                 'username' => $user->username,
@@ -51,7 +122,26 @@ class AuthController extends Controller
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at
             ]
-        ], 'Login berhasil');
+        ], 'Login berhasil')->withCookie($cookie);
+    }
+
+    /**
+     * Helper function to get Indonesian day name
+     */
+    private function getNamaHari($tanggal)
+    {
+        $hariInggris = date('l', strtotime($tanggal));
+        $hariIndonesia = [
+            'Sunday' => 'Minggu',
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu'
+        ];
+        
+        return $hariIndonesia[$hariInggris] ?? $hariInggris;
     }
 
     /**
@@ -116,7 +206,20 @@ class AuthController extends Controller
     {
         Auth::logout();
 
-        return ApiResponse::success(null, 'Berhasil logout');
+        // Hapus cookie dengan set expired
+        $cookie = cookie(
+            'auth_token',
+            '',
+            -1, // expired
+            '/',
+            null,
+            true,
+            true,
+            false,
+            'strict'
+        );
+
+        return ApiResponse::success(null, 'Berhasil logout')->withCookie($cookie);
     }
 
     /**
@@ -124,11 +227,23 @@ class AuthController extends Controller
      */
     public function refresh()
     {
+        $newToken = Auth::refresh();
+        
+        // Set cookie baru dengan token yang di-refresh
+        $cookie = cookie(
+            'auth_token',
+            $newToken,
+            Auth::factory()->getTTL(),
+            '/',
+            null,
+            true,
+            true,
+            false,
+            'strict'
+        );
+
         return ApiResponse::success([
-            'access_token' => Auth::refresh(),
-            'token_type' => 'Bearer',
-            'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
-        ], 'Token refreshed');
+        ], 'Token refreshed')->withCookie($cookie);
     }
 }

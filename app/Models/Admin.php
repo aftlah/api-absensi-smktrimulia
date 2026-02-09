@@ -11,7 +11,7 @@ class Admin extends Model
 
     protected $table = 'admin';
     protected $primaryKey = 'admin_id';
-    protected $fillable = ['nip', 'nama', 'akun_id'];
+    protected $fillable = ['username', 'nama', 'akun_id'];
 
     public function akun()
     {

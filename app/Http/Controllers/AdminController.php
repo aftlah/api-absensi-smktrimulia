@@ -275,7 +275,7 @@ class AdminController extends Controller
 
     public function getWalas(Request $request)
     {
-        $walas = WaliKelas::select('walas_id', 'nip', 'nama')->get();
+        $walas = WaliKelas::select('walas_id', 'username', 'nama')->get();
         return ApiResponse::success([
             'walas' => $walas,
         ]);
@@ -490,20 +490,23 @@ class AdminController extends Controller
     public function createWaliKelas(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|string|max:18|unique:wali_kelas,nip',
+            'username' => 'required|string|max:50|unique:wali_kelas,username',
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return ApiResponse::error('NIP tersebut sudah terdaftar sebagai wali kelas', $validator->errors(), 422);
+            return ApiResponse::error('Username tersebut sudah terdaftar sebagai wali kelas', $validator->errors(), 422);
         }
 
-        $nip = $request->input('nip');
+        $username = $request->input('username');
         $nama = $request->input('nama');
 
-        // Buat atau gunakan akun dengan username = NIP, password default TRI12345, role walas
+        // Generate random password untuk keamanan
+        $randomPassword = $this->generateRandomPassword();
+        
+        // Buat atau gunakan akun dengan username, password random, role walas
         $akun = Akun::firstOrCreate(
-            ['username' => $nip],
-            ['password' => Hash::make('TRI12345'), 'role' => 'walas']
+            ['username' => $username],
+            ['password' => Hash::make($randomPassword), 'role' => 'walas']
         );
         if ($akun->role !== 'walas') {
             $akun->role = 'walas';
@@ -511,7 +514,7 @@ class AdminController extends Controller
         }
 
         $walas = WaliKelas::create([
-            'nip' => $nip,
+            'username' => $username,
             'nama' => $nama,
             'akun_id' => $akun->akun_id,
         ]);
@@ -519,29 +522,30 @@ class AdminController extends Controller
         $walas->load('akun');
         return ApiResponse::success([
             'walas' => $walas,
-        ], 'Wali kelas berhasil ditambahkan', 201);
+            'password' => $randomPassword, // Return password untuk admin
+        ], 'Wali kelas berhasil ditambahkan. Password: ' . $randomPassword, 201);
     }
 
     public function updateWaliKelas(Request $request, $walas)
     {
         $wk = WaliKelas::findOrFail($walas);
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|string|max:18|unique:wali_kelas,nip,' . $wk->walas_id . ',walas_id',
+            'username' => 'required|string|max:50|unique:wali_kelas,username,' . $wk->walas_id . ',walas_id',
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
             return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
-        $wk->nip = $request->input('nip');
+        $wk->username = $request->input('username');
         $wk->nama = $request->input('nama');
         $wk->save();
 
-        // Sinkronkan username akun dengan NIP baru
+        // Sinkronkan username akun dengan username baru
         if ($wk->akun_id) {
             $akun = Akun::find($wk->akun_id);
             if ($akun) {
-                $akun->username = $wk->nip;
+                $akun->username = $wk->username;
                 $akun->role = 'walas';
                 $akun->save();
             }
@@ -712,10 +716,13 @@ class AdminController extends Controller
             'kelas_id' => 'required|exists:kelas,kelas_id',
         ]);
 
+        // Generate random password untuk keamanan
+        $randomPassword = $this->generateRandomPassword();
+        
         $username = $request->input('nis');
         $akun = Akun::create([
             'username' => $username,
-            'password' => bcrypt('TRI12345'),
+            'password' => bcrypt($randomPassword),
             'role' => 'siswa',
         ]);
 
@@ -735,7 +742,10 @@ class AdminController extends Controller
 
         $siswa->load(['akun', 'riwayatKelas.kelas']);
 
-        return ApiResponse::success($siswa, 'Siswa berhasil ditambahkan');
+        return ApiResponse::success([
+            'siswa' => $siswa,
+            'password' => $randomPassword, // Return password untuk admin
+        ], 'Siswa berhasil ditambahkan. Password: ' . $randomPassword);
     }
 
     /**
@@ -752,20 +762,23 @@ class AdminController extends Controller
     public function createGuruPiket(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|string|max:18|unique:guru_piket,nip',
+            'username' => 'required|string|max:50|unique:guru_piket,username',
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
-            return ApiResponse::error('NIP tersebut sudah terdaftar sebagai guru piket', $validator->errors(), 422);
+            return ApiResponse::error('Username tersebut sudah terdaftar sebagai guru piket', $validator->errors(), 422);
         }
 
-        $nip = $request->input('nip');
+        $username = $request->input('username');
         $nama = $request->input('nama');
 
-        // Buat atau gunakan akun dengan username = NIP, password default TRI12345, role gurket
+        // Generate random password untuk keamanan
+        $randomPassword = $this->generateRandomPassword();
+        
+        // Buat atau gunakan akun dengan username, password random, role gurket
         $akun = Akun::firstOrCreate(
-            ['username' => $nip],
-            ['password' => Hash::make('TRI12345'), 'role' => 'gurket']
+            ['username' => $username],
+            ['password' => Hash::make($randomPassword), 'role' => 'gurket']
         );
         if ($akun->role !== 'gurket') {
             $akun->role = 'gurket';
@@ -773,7 +786,7 @@ class AdminController extends Controller
         }
 
         $gp = GuruPiket::create([
-            'nip' => $nip,
+            'username' => $username,
             'nama' => $nama,
             'akun_id' => $akun->akun_id,
         ]);
@@ -781,29 +794,30 @@ class AdminController extends Controller
         $gp->load('akun');
         return ApiResponse::success([
             'gurket' => $gp,
-        ], 'Guru piket berhasil ditambahkan', 201);
+            'password' => $randomPassword, // Return password untuk admin
+        ], 'Guru piket berhasil ditambahkan. Password: ' . $randomPassword, 201);
     }
 
     public function updateGuruPiket(Request $request, $gurket)
     {
         $gp = GuruPiket::findOrFail($gurket);
         $validator = Validator::make($request->all(), [
-            'nip' => 'required|string|max:18|unique:guru_piket,nip,' . $gp->gurket_id . ',gurket_id',
+            'username' => 'required|string|max:50|unique:guru_piket,username,' . $gp->gurket_id . ',gurket_id',
             'nama' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
             return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
         }
 
-        $gp->nip = $request->input('nip');
+        $gp->username = $request->input('username');
         $gp->nama = $request->input('nama');
         $gp->save();
 
-        // Sinkronkan username akun dengan NIP baru
+        // Sinkronkan username akun dengan username baru
         if ($gp->akun_id) {
             $akun = Akun::find($gp->akun_id);
             if ($akun) {
-                $akun->username = $gp->nip;
+                $akun->username = $gp->username;
                 $akun->role = 'gurket';
                 $akun->save();
             }
@@ -911,5 +925,208 @@ class AdminController extends Controller
         $jp = JadwalPiket::findOrFail($jadwal);
         $jp->delete();
         return ApiResponse::success(null, 'Jadwal piket berhasil dihapus');
+    }
+
+    /**
+     * Delete all jadwal piket data
+     */
+    public function deleteAllJadwalPiket()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Hapus semua jadwal piket
+            JadwalPiket::query()->delete();
+            
+            DB::commit();
+            return ApiResponse::success(null, 'Semua jadwal piket berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Gagal menghapus semua jadwal piket: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Generate random password untuk keamanan
+     */
+    private function generateRandomPassword($length = 12)
+    {
+        $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+        $password = '';
+        
+        // Pastikan ada minimal 1 huruf kecil, 1 huruf besar, 1 angka, 1 simbol
+        $password .= chr(rand(97, 122)); // huruf kecil
+        $password .= chr(rand(65, 90));  // huruf besar
+        $password .= chr(rand(48, 57));  // angka
+        $password .= '!@#$%^&*'[rand(0, 7)]; // simbol
+        
+        // Isi sisa karakter secara random
+        for ($i = 4; $i < $length; $i++) {
+            $password .= $characters[rand(0, strlen($characters) - 1)];
+        }
+        
+        // Acak urutan karakter
+        return str_shuffle($password);
+    }
+
+    /**
+     * Delete siswa data
+     */
+    public function deleteDataSiswa($siswaId)
+    {
+        try {
+            $siswa = Siswa::findOrFail($siswaId);
+            
+            // Hapus riwayat kelas terkait
+            RiwayatKelas::where('siswa_id', $siswa->siswa_id)->delete();
+            
+            // Hapus absensi terkait
+            Absensi::where('siswa_id', $siswa->siswa_id)->delete();
+            
+            // Hapus akun terkait jika ada
+            if ($siswa->akun_id) {
+                Akun::where('akun_id', $siswa->akun_id)->delete();
+            }
+            
+            // Hapus siswa
+            $siswa->delete();
+            
+            return ApiResponse::success(null, 'Siswa berhasil dihapus');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Gagal menghapus siswa: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Delete all siswa data
+     */
+    public function deleteAllSiswa()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Hapus dalam urutan yang benar untuk menghindari foreign key constraint
+            // 1. Hapus semua absensi terlebih dahulu
+            Absensi::query()->delete();
+            
+            // 2. Hapus semua riwayat kelas
+            RiwayatKelas::query()->delete();
+            
+            // 3. Hapus semua akun siswa
+            Akun::where('role', 'siswa')->delete();
+            
+            // 4. Hapus semua siswa
+            Siswa::query()->delete();
+            
+            DB::commit();
+            
+            return ApiResponse::success(null, 'Semua data siswa berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ApiResponse::error('Gagal menghapus semua siswa: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Delete all jurusan data
+     */
+    public function deleteAllJurusan()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Hapus semua kelas yang terkait dengan jurusan
+            Kelas::query()->delete();
+            
+            // Hapus semua riwayat kelas
+            RiwayatKelas::query()->delete();
+            
+            // Hapus semua jurusan
+            Jurusan::query()->delete();
+            
+            DB::commit();
+            
+            return ApiResponse::success(null, 'Semua data jurusan berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ApiResponse::error('Gagal menghapus semua jurusan: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Delete all kelas data
+     */
+    public function deleteAllKelas()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Hapus semua riwayat kelas
+            RiwayatKelas::query()->delete();
+            
+            // Hapus semua kelas
+            Kelas::query()->delete();
+            
+            DB::commit();
+            
+            return ApiResponse::success(null, 'Semua data kelas berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ApiResponse::error('Gagal menghapus semua kelas: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Delete all wali kelas data
+     */
+    public function deleteAllWaliKelas()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Update kelas yang memiliki wali kelas menjadi null
+            Kelas::query()->update(['walas_id' => null]);
+            
+            // Hapus semua akun wali kelas
+            $walasIds = WaliKelas::pluck('akun_id');
+            Akun::whereIn('akun_id', $walasIds)->delete();
+            
+            // Hapus semua wali kelas
+            WaliKelas::query()->delete();
+            
+            DB::commit();
+            
+            return ApiResponse::success(null, 'Semua data wali kelas berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ApiResponse::error('Gagal menghapus semua wali kelas: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Delete all guru piket data
+     */
+    public function deleteAllGuruPiket()
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Hapus semua jadwal piket
+            JadwalPiket::query()->delete();
+            
+            // Hapus semua akun guru piket
+            $gurketIds = GuruPiket::pluck('akun_id');
+            Akun::whereIn('akun_id', $gurketIds)->delete();
+            
+            // Hapus semua guru piket
+            GuruPiket::query()->delete();
+            
+            DB::commit();
+            
+            return ApiResponse::success(null, 'Semua data guru piket berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ApiResponse::error('Gagal menghapus semua guru piket: ' . $e->getMessage(), null, 500);
+        }
     }
 }

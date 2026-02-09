@@ -101,8 +101,7 @@ return [
     |
     */
 
-    // 30 hari × 24 jam × 60 menit = 43.200 menit
-    'ttl' => env('JWT_TTL', 43200), // 1 bulan
+    'ttl' => env('JWT_TTL', 120), // 2 hours for better security
 
     /*
     |--------------------------------------------------------------------------
@@ -121,7 +120,7 @@ return [
     |
     */
 
-    'refresh_ttl' => env('JWT_REFRESH_TTL', 10),
+    'refresh_ttl' => env('JWT_REFRESH_TTL', 20160), // 2 weeks
 
     /*
     |--------------------------------------------------------------------------

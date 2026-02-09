@@ -17,7 +17,7 @@ class AdminAccountSeeder extends Seeder
         );
 
         Admin::firstOrCreate(
-            ['nip' => 'admin'],
+            ['username' => 'admin'],
             ['nama' => 'Kepala Sekolah (Administrator)', 'akun_id' => $adminAkun->akun_id]
         );
     }

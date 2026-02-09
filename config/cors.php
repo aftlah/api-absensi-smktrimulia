@@ -17,18 +17,26 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5173',
+        'http://163.61.58.210'
+        // Tambahkan domain production di sini
+        // 'https://yourdomain.com',
+    ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'X-Requested-With'],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 86400, // 24 hours
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];

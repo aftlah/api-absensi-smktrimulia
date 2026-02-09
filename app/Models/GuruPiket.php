@@ -11,7 +11,7 @@ class GuruPiket extends Model
 
     protected $table = 'guru_piket';
     protected $primaryKey = 'gurket_id';
-    protected $fillable = ['nip', 'nama', 'akun_id'];
+    protected $fillable = ['username', 'nama', 'akun_id'];
 
     public function akun()
     {

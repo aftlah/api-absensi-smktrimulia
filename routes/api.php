@@ -16,11 +16,12 @@ Route::get('/', function () {
     return response()->json(['message' => 'API Absensi SMK Trimulia is Running']);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
-Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
-Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
-Route::get('/profil', [AuthController::class, 'profil'])->middleware('auth:api');
+// Auth dengan rate limiting
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1'); // 5 attempts per minute
+Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth:api', 'throttle:10,1']);
+Route::post('/refresh', [AuthController::class, 'refresh'])->middleware(['auth:api', 'throttle:10,1']);
+Route::get('/me', [AuthController::class, 'me'])->middleware(['auth:api', 'throttle:60,1']);
+Route::get('/profil', [AuthController::class, 'profil'])->middleware(['auth:api', 'throttle:60,1']);
 
 // Hanya siswa
 Route::middleware(['auth:api', 'role:siswa'])->group(function () {
@@ -51,12 +52,14 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/jurusan', [AdminController::class, 'createJurusan']);
         Route::put('/jurusan/{jurusan}', [AdminController::class, 'updateJurusan']);
         Route::delete('/jurusan/{jurusan}', [AdminController::class, 'deleteJurusan']);
+        Route::delete('/jurusan-delete-all', [AdminController::class, 'deleteAllJurusan']);
 
         // Kelas
         Route::get('/kelas', [AdminController::class, 'getKelas']);
         Route::post('/kelas', [AdminController::class, 'createKelas']);
         Route::put('/kelas/{kelas}', [AdminController::class, 'updateKelas']);
         Route::delete('/kelas/{kelas}', [AdminController::class, 'deleteKelas']);
+        Route::delete('/kelas-delete-all', [AdminController::class, 'deleteAllKelas']);
         Route::get('/riwayat-kelas', [AdminController::class, 'getRiwayatKelas']);
         Route::put('/riwayat-kelas/{riwayat}', [AdminController::class, 'updateRiwayatKelas']);
         Route::post('/riwayat-kelas/promote/{kelas}', [AdminController::class, 'promoteClass']);
@@ -69,6 +72,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/wali-kelas', [AdminController::class, 'createWaliKelas']);
         Route::put('/wali-kelas/{walas}', [AdminController::class, 'updateWaliKelas']);
         Route::delete('/wali-kelas/{walas}', [AdminController::class, 'deleteWaliKelas']);
+        Route::delete('/wali-kelas-delete-all', [AdminController::class, 'deleteAllWaliKelas']);
 
 
         // Guru Piket CRUD
@@ -76,6 +80,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/guru-piket', [AdminController::class, 'createGuruPiket']);
         Route::put('/guru-piket/{gurket}', [AdminController::class, 'updateGuruPiket']);
         Route::delete('/guru-piket/{gurket}', [AdminController::class, 'deleteGuruPiket']);
+        Route::delete('/guru-piket-delete-all', [AdminController::class, 'deleteAllGuruPiket']);
         // Route::get('/akun-gurket', [AdminController::class, 'getAkunGuruPiket']);
 
         // Jadwal Piket CRUD
@@ -83,12 +88,15 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         Route::post('/jadwal-piket', [AdminController::class, 'createJadwalPiket']);
         Route::put('/jadwal-piket/{jadwal}', [AdminController::class, 'updateJadwalPiket']);
         Route::delete('/jadwal-piket/{jadwal}', [AdminController::class, 'deleteJadwalPiket']);
+        Route::delete('/jadwal-piket-delete-all', [AdminController::class, 'deleteAllJadwalPiket']);
 
         Route::post('/import-siswa', [AdminController::class, 'importSiswa']);
         Route::prefix('/kelola-datasiswa')->group(function () {
             Route::get('/', [AdminController::class, 'getDataSiswa']);
             Route::post('/create', [AdminController::class, 'createDataSiswa']);
             Route::post('/update', [AdminController::class, 'updateDataSiswa']);
+            Route::delete('/delete-all', [AdminController::class, 'deleteAllSiswa']);
+            Route::delete('/{siswa}', [AdminController::class, 'deleteDataSiswa']);
         });
     });
 });

@@ -11,7 +11,7 @@ class WaliKelas extends Model
 
     protected $table = 'wali_kelas';
     protected $primaryKey = 'walas_id';
-    protected $fillable = ['nip', 'nama', 'akun_id'];
+    protected $fillable = ['username', 'nama', 'akun_id'];
 
     public function akun()
     {
