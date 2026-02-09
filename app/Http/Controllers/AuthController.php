@@ -106,11 +106,11 @@ class AuthController extends Controller
             $token,
             Auth::factory()->getTTL(), // TTL dalam menit
             '/', // path
-            null, // domain
-            true, // secure (HTTPS only)
+            config('session.domain'), // domain
+            config('session.secure_cookie', false), // secure (HTTPS only)
             true, // httpOnly
             false, // raw
-            'strict' // sameSite
+            config('session.same_site', 'lax') // sameSite
         );
 
         return ApiResponse::success([
@@ -246,11 +246,11 @@ class AuthController extends Controller
             '',
             -1, // expired
             '/',
-            null,
-            true,
+            config('session.domain'),
+            config('session.secure_cookie', false),
             true,
             false,
-            'strict'
+            config('session.same_site', 'lax')
         );
 
         return ApiResponse::success(null, 'Berhasil logout')->withCookie($cookie);
@@ -269,11 +269,11 @@ class AuthController extends Controller
             $newToken,
             Auth::factory()->getTTL(),
             '/',
-            null,
-            true,
+            config('session.domain'),
+            config('session.secure_cookie', false),
             true,
             false,
-            'strict'
+            config('session.same_site', 'lax')
         );
 
         return ApiResponse::success([
