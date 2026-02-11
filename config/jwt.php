@@ -101,7 +101,7 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 120), // 2 hours for better security
+    'ttl' => env('APP_ENV') === 'local' ? null : env('JWT_TTL', 120), // Unlimited for local, 2 hours for production
 
     /*
     |--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ return [
     |
     */
 
-    'refresh_ttl' => env('JWT_REFRESH_TTL', 20160), // 2 weeks
+    'refresh_ttl' => env('APP_ENV') === 'local' ? null : env('JWT_REFRESH_TTL', 20160), // Unlimited for local, 2 weeks for production
 
     /*
     |--------------------------------------------------------------------------
@@ -144,14 +144,23 @@ return [
     |
     */
 
-    'required_claims' => [
-        'iss',
-        'iat',
-        'exp',
-        'nbf',
-        'sub',
-        'jti',
-    ],
+    'required_claims' => env('APP_ENV') === 'local' 
+        ? [
+            'iss',
+            'iat',
+            // 'exp', // Removed for local to allow unlimited token
+            'nbf',
+            'sub',
+            'jti',
+        ]
+        : [
+            'iss',
+            'iat',
+            'exp',
+            'nbf',
+            'sub',
+            'jti',
+        ],
 
     /*
     |--------------------------------------------------------------------------

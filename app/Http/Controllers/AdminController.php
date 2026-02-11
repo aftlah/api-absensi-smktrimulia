@@ -928,6 +928,66 @@ class AdminController extends Controller
     }
 
     /**
+     * Bulk create jadwal piket untuk efisiensi
+     */
+    public function bulkCreateJadwalPiket(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'jadwal' => 'required|array',
+            'jadwal.*.tanggal' => 'required|date',
+            'jadwal.*.gurket_id' => 'required|exists:guru_piket,gurket_id',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal', $validator->errors(), 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $jadwalData = $request->input('jadwal');
+            $createdCount = 0;
+            $skippedCount = 0;
+            $errors = [];
+
+            // Get existing dates untuk skip duplicate
+            $existingDates = JadwalPiket::pluck('tanggal')->toArray();
+
+            foreach ($jadwalData as $item) {
+                // Skip jika tanggal sudah ada
+                if (in_array($item['tanggal'], $existingDates)) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                try {
+                    JadwalPiket::create([
+                        'tanggal' => $item['tanggal'],
+                        'gurket_id' => $item['gurket_id'],
+                    ]);
+                    $createdCount++;
+                    $existingDates[] = $item['tanggal']; // Add to existing untuk prevent duplicate dalam batch
+                } catch (\Exception $e) {
+                    $skippedCount++;
+                    $errors[] = "Gagal membuat jadwal untuk {$item['tanggal']}: " . $e->getMessage();
+                }
+            }
+
+            DB::commit();
+
+            return ApiResponse::success([
+                'created' => $createdCount,
+                'skipped' => $skippedCount,
+                'errors' => $errors,
+            ], "Berhasil membuat {$createdCount} jadwal piket. {$skippedCount} dilewati.", 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Gagal membuat jadwal piket: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
      * Delete all jadwal piket data
      */
     public function deleteAllJadwalPiket()

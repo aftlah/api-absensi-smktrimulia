@@ -96,6 +96,7 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
         // Jadwal Piket CRUD
         Route::get('/jadwal-piket', [AdminController::class, 'getJadwalPiket']);
         Route::post('/jadwal-piket', [AdminController::class, 'createJadwalPiket']);
+        Route::post('/jadwal-piket-bulk', [AdminController::class, 'bulkCreateJadwalPiket']);
         Route::put('/jadwal-piket/{jadwal}', [AdminController::class, 'updateJadwalPiket']);
         Route::delete('/jadwal-piket/{jadwal}', [AdminController::class, 'deleteJadwalPiket']);
         Route::delete('/jadwal-piket-delete-all', [AdminController::class, 'deleteAllJadwalPiket']);
@@ -114,6 +115,10 @@ Route::middleware(['auth:api', 'role:admin'])->group(function () {
 
 // Admin, gurket & wali kelas
 Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
+    // Dashboard - consolidated endpoint
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+    
+    // Legacy endpoints (keep for backward compatibility)
     Route::get('/total-siswa', [DashboardController::class, 'totalSiswa']);
     Route::get('/hadir-hariini', [DashboardController::class, 'hadirHariIni']);
     Route::get('/terlambat-hariini', [DashboardController::class, 'terlambatHariIni']);
@@ -121,6 +126,7 @@ Route::middleware(['auth:api', 'role:admin,gurket,walas'])->group(function () {
     Route::get('/izin-hariini', [DashboardController::class, 'izinHariIni']);
     Route::get('/sakit-hariini', [DashboardController::class, 'sakitHariIni']);
     // Route::get('/guru/rekap', [GurketController::class, 'rekap']);
+
 
     // Utility
     Route::get('/utility/kelas', [UtillityController::class, 'getListKelas']);

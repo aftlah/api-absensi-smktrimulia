@@ -16,6 +16,7 @@ use App\Models\WaliKelas;
 use App\Models\AktivitasTerbaru;
 use App\Models\Pengaturan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 
@@ -318,7 +319,10 @@ class GurketController extends Controller
 
         if ($mode === 'week') {
             $kelasAll = Kelas::select('kelas_id')->get();
-            for ($i = 0; $i < 30; $i++) {
+            $bulkData = [];
+            
+            // Ubah dari 30 hari menjadi 365 hari (1 tahun)
+            for ($i = 0; $i < 365; $i++) {
                 $tanggal = $tanggalMulai->copy()->addDays($i);
                 $dayOfWeek = $tanggal->dayOfWeek;
                 $statusHari = ($dayOfWeek === Carbon::SATURDAY || $dayOfWeek === Carbon::SUNDAY)
@@ -329,22 +333,40 @@ class GurketController extends Controller
                 $startYear = $month >= 7 ? $year : ($year - 1);
                 $endYear = $startYear + 1;
                 $thnAjar = sprintf('%d%d', $startYear, $endYear);
+                
                 foreach ($kelasAll as $kelas) {
-                    RencanaAbsensi::updateOrCreate(
-                        [
-                            'kelas_id' => $kelas->kelas_id,
-                            'tanggal' => $tanggal->toDateString(),
-                        ],
-                        [
-                            'status_hari' => $statusHari,
-                            'keterangan' => $keterangan,
-                            'thn_ajaran' => $thnAjar,
-                        ]
-                    );
+                    $bulkData[] = [
+                        'kelas_id' => $kelas->kelas_id,
+                        'tanggal' => $tanggal->toDateString(),
+                        'status_hari' => $statusHari,
+                        'keterangan' => $keterangan,
+                        'thn_ajaran' => $thnAjar,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
                 }
             }
 
-            return ApiResponse::success(null, 'Rencana absensi 30 hari untuk semua kelas berhasil dibuat');
+            // Bulk insert dengan upsert untuk handle duplicate
+            try {
+                DB::beginTransaction();
+                
+                // Chunk data untuk menghindari query terlalu besar
+                $chunks = array_chunk($bulkData, 500);
+                foreach ($chunks as $chunk) {
+                    RencanaAbsensi::upsert(
+                        $chunk,
+                        ['kelas_id', 'tanggal'], // unique keys
+                        ['status_hari', 'keterangan', 'thn_ajaran', 'updated_at'] // columns to update
+                    );
+                }
+                
+                DB::commit();
+                return ApiResponse::success(null, 'Rencana absensi 1 tahun untuk semua kelas berhasil dibuat');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return ApiResponse::error('Gagal membuat rencana absensi: ' . $e->getMessage(), null, 500);
+            }
         }
 
         $kelasAll = Kelas::select('kelas_id')->get();

@@ -28,55 +28,93 @@ class ImportHelper
         $sheetNames = $spreadsheet->getSheetNames();
         $kelasMap = [];
         $missingJurusan = [];
+        $jurusanLog = [];
+
+        // Log semua jurusan yang ada di database
+        $existingJurusan = Jurusan::all();
+        foreach ($existingJurusan as $jur) {
+            $jurusanLog[] = [
+                'id' => $jur->jurusan_id,
+                'nama' => $jur->nama_jurusan,
+                'nama_lowercase' => strtolower($jur->nama_jurusan)
+            ];
+        }
+
+        \Log::info('=== IMPORT SISWA DIMULAI ===');
+        \Log::info('Jurusan yang tersedia di database:', $jurusanLog);
+        \Log::info('Sheet names dari Excel:', $sheetNames);
 
         foreach ($sheetNames as $sheetName) {
             try {
                 $name = trim(preg_replace('/\s+/', ' ', $sheetName));
+                \Log::info("Memproses sheet: {$sheetName} (cleaned: {$name})");
+                
                 if (!preg_match('/^(X|XI|XII)\s+(.+)$/i', $name, $m)) {
+                    \Log::warning("Sheet '{$sheetName}' tidak sesuai format (X/XI/XII JURUSAN)");
                     $kelasMap[$sheetName] = null;
                     $missingJurusan[] = $name;
                     continue;
                 }
+                
                 $tingkat = strtoupper($m[1]);
                 $jurusanNama = trim($m[2]);
+                
+                \Log::info("Tingkat: {$tingkat}, Jurusan: {$jurusanNama}");
 
                 $jurusan = Jurusan::whereRaw('LOWER(nama_jurusan) = ?', [strtolower($jurusanNama)])->first();
 
                 if (!$jurusan) {
+                    \Log::error("Jurusan '{$jurusanNama}' tidak ditemukan di database");
                     $kelasMap[$sheetName] = null;
                     $missingJurusan[] = $jurusanNama;
                     continue;
                 }
+
+                \Log::info("Jurusan ditemukan: {$jurusan->nama_jurusan} (ID: {$jurusan->jurusan_id})");
 
                 $kelas = Kelas::where('tingkat', $tingkat)
                     ->where('jurusan_id', $jurusan->jurusan_id)
                     ->first();
 
                 if (!$kelas) {
+                    \Log::info("Kelas tidak ditemukan, membuat kelas baru: {$tingkat} {$jurusan->nama_jurusan}");
                     $kelas = Kelas::create([
                         'tingkat' => $tingkat,
                         'jurusan_id' => $jurusan->jurusan_id,
                         'paralel' => 1,
                         'walas_id' => $defaultWali->walas_id,
                     ]);
+                    \Log::info("Kelas berhasil dibuat dengan ID: {$kelas->kelas_id}");
+                } else {
+                    \Log::info("Kelas sudah ada dengan ID: {$kelas->kelas_id}");
                 }
 
                 $kelasMap[$sheetName] = $kelas->kelas_id;
             } catch (\Throwable $e) {
+                \Log::error("Error saat memproses sheet '{$sheetName}': " . $e->getMessage());
+                \Log::error("Stack trace: " . $e->getTraceAsString());
                 $kelasMap[$sheetName] = null;
                 continue;
             }
         }
 
         if (!empty($missingJurusan)) {
-            throw new \RuntimeException('Jurusan tidak ditemukan untuk sheet: ' . implode(', ', $missingJurusan));
+            $errorMsg = 'Jurusan tidak ditemukan untuk sheet: ' . implode(', ', $missingJurusan);
+            \Log::error($errorMsg);
+            \Log::info('Jurusan yang tersedia: ' . implode(', ', array_column($jurusanLog, 'nama')));
+            throw new \RuntimeException($errorMsg);
         }
 
         $existingNis = Siswa::pluck('nis')->toArray();
+        \Log::info('Total NIS yang sudah ada di database: ' . count($existingNis));
 
         // Import semua sheet
         $importer = new SiswaMultiSheetImport($sheetNames, $kelasMap, $existingNis);
         Excel::import($importer, $file);
+
+        \Log::info('=== IMPORT SISWA SELESAI ===');
+        \Log::info('Total data berhasil diimport: ' . count($importer->getImportedData()));
+        \Log::info('Total NIS duplikat: ' . count($importer->getDuplicateNis()));
 
         return [
             'status' => 'success',
@@ -171,37 +209,44 @@ class SiswaSheetImport implements ToCollection
     {
         if (!$this->kelasId) return;
 
-        $startRow = 15;
+        $startRow = 2; // Mulai dari baris 2 (setelah header)
         $rowIndex = 1;
 
         foreach ($rows as $row) {
             if ($rowIndex++ < $startRow) continue;
             if (count($row) < 4) continue;
 
-            $nomorInduk = trim($row[1] ?? '');
+            $nis = trim($row[0] ?? '');
+            $nisn = trim($row[1] ?? '');
             $nama = trim($row[2] ?? '');
             $jk = trim($row[3] ?? '');
 
-            if (!$nomorInduk || !$nama) continue;
+            if (!$nis || !$nama) continue;
 
-            if (in_array($nomorInduk, $this->existingNis, true)) {
+            // Validasi NISN untuk password
+            if (!$nisn) {
+                // Skip jika NISN kosong karena akan digunakan sebagai password
+                continue;
+            }
+
+            if (in_array($nis, $this->existingNis, true)) {
                 if ($this->parent) {
-                    $this->parent->addDuplicateNis($nomorInduk);
+                    $this->parent->addDuplicateNis($nis);
                 }
                 continue;
             }
 
-            // Buat akun siswa
+            // Buat akun siswa dengan username = NIS dan password = NISN
             $akun = Akun::firstOrCreate(
-                ['username' => $nomorInduk],
+                ['username' => $nis],
                 [
-                    'password' => Hash::make($nomorInduk),
+                    'password' => Hash::make($nisn),
                     'role' => 'siswa',
                 ]
             );
 
             $siswa = Siswa::updateOrCreate(
-                ['nis' => $nomorInduk],
+                ['nis' => $nis],
                 [
                     'akun_id' => $akun->akun_id,
                     'nama' => $nama,

@@ -283,4 +283,80 @@ class DashboardController extends Controller
             'siswa_sakit_hari_ini' => $siswaSakit,
         ], 'Data siswa sakit hari ini berhasil diambil');
     }
+
+    /**
+     * Get all dashboard stats in one request
+     */
+    public function getStats()
+    {
+        $hariIni = now()->toDateString();
+        $user = Auth::user();
+
+        $query = Siswa::query();
+        $kelasId = null;
+
+        // Filter kelas jika wali kelas
+        if ($user && $user->role === 'walas') {
+            $walas = WaliKelas::with('kelas')->where('akun_id', $user->akun_id)->first();
+            if ($walas && $walas->kelas) {
+                $kelasId = $walas->kelas->kelas_id;
+                $query->whereHas('riwayatKelas', function ($q) use ($kelasId) {
+                    $q->where('kelas_id', $kelasId)->where('status', 'aktif');
+                });
+            }
+        }
+
+        // Total siswa
+        $totalSiswa = $query->count();
+
+        // Count by status
+        $hadir = (clone $query)->whereHas('absensi', function ($q) use ($hariIni) {
+            $q->where('status', 'hadir')
+                ->whereHas('rencanaAbsensi', function ($rq) use ($hariIni) {
+                    $rq->where('tanggal', $hariIni);
+                });
+        })->count();
+
+        $terlambat = (clone $query)->whereHas('absensi', function ($q) use ($hariIni) {
+            $q->where('status', 'terlambat')
+                ->whereHas('rencanaAbsensi', function ($rq) use ($hariIni) {
+                    $rq->where('tanggal', $hariIni);
+                });
+        })->count();
+
+        $izin = (clone $query)->whereHas('absensi', function ($q) use ($hariIni) {
+            $q->where('status', 'izin')
+                ->whereHas('rencanaAbsensi', function ($rq) use ($hariIni) {
+                    $rq->where('tanggal', $hariIni);
+                });
+        })->count();
+
+        $sakit = (clone $query)->whereHas('absensi', function ($q) use ($hariIni) {
+            $q->where('status', 'sakit')
+                ->whereHas('rencanaAbsensi', function ($rq) use ($hariIni) {
+                    $rq->where('tanggal', $hariIni);
+                });
+        })->count();
+
+        $alfa = (clone $query)->whereHas('absensi', function ($q) use ($hariIni) {
+            $q->where('status', 'alfa')
+                ->whereHas('rencanaAbsensi', function ($rq) use ($hariIni) {
+                    $rq->where('tanggal', $hariIni);
+                });
+        })->count();
+
+        $belumHadir = $totalSiswa - $hadir - $terlambat;
+        $presentRate = $totalSiswa > 0 ? round(($hadir / $totalSiswa) * 100) : 0;
+
+        return ApiResponse::success([
+            'total_siswa' => $totalSiswa,
+            'hadir' => $hadir,
+            'terlambat' => $terlambat,
+            'izin' => $izin,
+            'sakit' => $sakit,
+            'alfa' => $alfa,
+            'belum_hadir' => $belumHadir,
+            'present_rate' => $presentRate,
+        ], 'Dashboard stats berhasil diambil');
+    }
 }

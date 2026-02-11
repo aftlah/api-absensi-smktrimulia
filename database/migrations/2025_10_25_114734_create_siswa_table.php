@@ -19,12 +19,6 @@ return new class extends Migration {
                 ->on('akun')
                 ->onDelete('cascade');
 
-            $table->unsignedBigInteger('kelas_id');
-            $table->foreign('kelas_id')
-                ->references('kelas_id')
-                ->on('kelas')
-                ->onDelete('cascade');
-
             $table->timestamps();
         });
     }
