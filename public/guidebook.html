@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Penggunaan SATRIA - Sistem Absensi Trimulia Jakarta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #003366;
+            border-bottom: 3px solid #003366;
+            padding-bottom: 10px;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #003366;
+            margin-top: 30px;
+            font-size: 2em;
+            border-left: 5px solid #4A90E2;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #357ABD;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        h4 {
+            color: #4A90E2;
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+        .info-box {
+            background-color: #E3F2FD;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #FFF3E0;
+            border-left: 4px solid #FF9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .success-box {
+            background-color: #E8F5E9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .page-break {
+            margin: 40px 0;
+            border-top: 2px dashed #ddd;
+        }
+        .cover {
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #003366 0%, #4A90E2 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+        .cover h1 {
+            font-size: 3em;
+            border: none;
+            color: white;
+        }
+        .cover p {
+            font-size: 1.2em;
+            color: #E3F2FD;
+        }
+        .nav-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            border: 2px solid #003366;
+            padding: 15px;
+            max-width: 250px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+        .nav-menu h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 8px;
+            border-left: none;
+            color: #003366;
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li {
+            margin: 5px 0;
+        }
+        .nav-menu a {
+            text-decoration: none;
+            color: #003366;
+            font-size: 0.9em;
+            display: block;
+            padding: 8px 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            transition: all 0.2s;
+        }
+        .nav-menu a:hover {
+            background-color: #4A90E2;
+            color: white;
+            transform: translateX(5px);
+        }
+        .toggle-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            z-index: 1001;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
+        .toggle-nav:hover {
+            background-color: #4A90E2;
+            transform: scale(1.05);
+        }
+        .nav-menu.hidden {
+            display: none;
+        }
+        @media print {
+            .nav-menu, .toggle-nav {
+                display: none !important;
+            }
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .nav-menu {
+                max-width: 200px;
+                right: 10px;
+                top: 10px;
+            }
+            .toggle-nav {
+                right: 10px;
+                top: 10px;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Toggle Button -->
+    <button class="toggle-nav" onclick="toggleNav()">☰ Menu</button>
+    
+    <!-- Navigation Menu -->
+    <div class="nav-menu hidden" id="navMenu">
+        <h3>Navigasi Cepat</h3>
+        <ul>
+            <li><a href="#cover">Cover</a></li>
+            <li><a href="#daftar-isi">Daftar Isi</a></li>
+            <li><a href="#pengenalan">1. Pengenalan SATRIA</a></li>
+            <li><a href="#login">2. Cara Login</a></li>
+            <li><a href="#admin">3. Panduan Admin</a></li>
+            <li><a href="#gurket">4. Panduan Guru Piket</a></li>
+            <li><a href="#walas">5. Panduan Wali Kelas</a></li>
+            <li><a href="#siswa">6. Panduan Siswa</a></li>
+            <li><a href="#faq">7. FAQ & Troubleshooting</a></li>
+            <li><a href="#penutup">Penutup</a></li>
+        </ul>
+    </div>
+
+    <script>
+        // Set current year dynamically
+        document.addEventListener('DOMContentLoaded', function() {
+            var currentYear = new Date().getFullYear();
+            document.getElementById('coverYear').innerText = currentYear;
+            document.getElementById('footerYear').innerText = currentYear;
+            
+            // Close menu when clicking on a link
+            document.querySelectorAll('.nav-menu a').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    document.getElementById('navMenu').classList.add('hidden');
+                });
+            });
+        });
+        
+        function toggleNav() {
+            var nav = document.getElementById('navMenu');
+            nav.classList.toggle('hidden');
+        }
+    </script>
+
+    <!-- COVER PAGE -->
+    <div class="cover" id="cover">
+        <h1>PANDUAN PENGGUNAAN</h1>
+        <h1>SATRIA</h1>
+        <p style="font-size: 18pt; margin: 30px 0;">Sistem Absensi Trimulia Jakarta</p>
+        <p style="margin-top: 50px;">SMK Trimulia Jakarta</p>
+        <p>Versi 1.0 - <span id="coverYear"></span></p>
+    </div>
+    
+    <div class="page-break"></div>
+
+    <!-- DAFTAR ISI -->
+    <h1 id="daftar-isi">Daftar Isi</h1>
+    <ol>
+        <li>Pengenalan SATRIA</li>
+        <li>Cara Login ke Sistem</li>
+        <li>Panduan untuk Admin/Kepala Sekolah</li>
+        <li>Panduan untuk Guru Piket</li>
+        <li>Panduan untuk Wali Kelas</li>
+        <li>Panduan untuk Siswa</li>
+        <li>FAQ dan Troubleshooting</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 1: PENGENALAN -->
+    <h1 id="pengenalan">1. Pengenalan SATRIA</h1>
+    
+    <h2>1.1 Apa itu SATRIA?</h2>
+    <p>
+        SATRIA (Sistem Absensi Trimulia Jakarta) adalah aplikasi berbasis web yang dirancang khusus untuk 
+        mengelola absensi siswa di SMK Trimulia Jakarta. Sistem ini menggunakan teknologi GPS untuk memastikan 
+        siswa melakukan absensi dari lokasi sekolah.
+    </p>
+
+    <h2>1.2 Fitur Utama</h2>
+    <ul>
+        <li><strong>Absensi Berbasis GPS:</strong> Siswa hanya bisa absen jika berada dalam radius sekolah</li>
+        <li><strong>Absensi Datang & Pulang:</strong> Sistem mencatat waktu kedatangan dan kepulangan siswa</li>
+        <li><strong>Pengajuan Izin/Sakit:</strong> Siswa dapat mengajukan izin atau sakit dengan bukti pendukung</li>
+        <li><strong>Rekap Otomatis:</strong> Sistem menghasilkan laporan absensi harian, mingguan, dan bulanan</li>
+        <li><strong>Multi Role:</strong> Mendukung 4 jenis pengguna dengan hak akses berbeda</li>
+    </ul>
+
+    <h2>1.3 Jenis Pengguna</h2>
+    <table>
+        <tr>
+            <th>Role</th>
+            <th>Deskripsi</th>
+            <th>Hak Akses Utama</th>
+        </tr>
+        <tr>
+            <td><strong>Kepala Sekolan dan Kesiswaan Sebagai Admin</strong></td>
+            <td>Pengelola sistem secara keseluruhan</td>
+            <td>Kelola data sekolah, lihat rekap global, atur pengaturan sistem</td>
+        </tr>
+        <tr>
+            <td><strong>Guru Piket</strong></td>
+            <td>Guru yang bertugas mengawasi absensi harian</td>
+            <td>Kelola absensi harian, verifikasi izin/sakit, buat rencana absensi</td>
+        </tr>
+        <tr>
+            <td><strong>Wali Kelas</strong></td>
+            <td>Guru yang bertanggung jawab atas satu kelas</td>
+            <td>Lihat rekap absensi kelas, pantau kehadiran siswa di kelasnya</td>
+        </tr>
+        <tr>
+            <td><strong>Siswa</strong></td>
+            <td>Pengguna yang melakukan absensi</td>
+            <td>Absen datang/pulang, ajukan izin/sakit, lihat riwayat absensi</td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 2: CARA LOGIN -->
+    <h1 id="login">2. Cara Login ke Sistem</h1>
+
+    <h2>2.1 Mengakses Halaman Login</h2>
+    <ol>
+        <li>Buka browser (Chrome, Firefox, atau Edge)</li>
+        <li>Ketik alamat website smk trimulia jakarta atau bisa kunjungi https://smktrimulia.sch.id/</li>
+        <li>Cari menu SATRIA dan klik</li>
+    </ol>
+
+    <h2>2.2 Proses Login</h2>
+    <ol>
+        <li>Masukkan <strong>Username</strong> yang telah diberikan oleh admin</li>
+        <li>Masukkan <strong>Password</strong> Anda</li>
+        <li>Klik tombol <strong>"Masuk"</strong></li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Gunakan tombol mata (👁️) di samping kolom password untuk melihat/menyembunyikan password yang Anda ketik.
+    </div>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong> Jika Anda lupa password, hubungi admin sekolah untuk reset password.
+    </div>
+
+    <h2>2.3 Setelah Login Berhasil</h2>
+    <p>Setelah login berhasil, Anda akan diarahkan ke halaman sesuai role:</p>
+    <ul>
+        <li><strong>Admin/Kepala Sekolah, Guru Piket, Wali Kelas:</strong> Diarahkan ke halaman Dashboard</li>
+        <li><strong>Siswa:</strong> Diarahkan ke halaman Home Siswa</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 3: PANDUAN ADMIN -->
+    <h1 id="admin">3. Panduan untuk Admin/Kepala Sekolah</h1>
+
+    <h2>3.1 Dashboard Admin</h2>
+    <p>Dashboard menampilkan ringkasan statistik absensi seluruh sekolah:</p>
+    <ul>
+        <li>Total siswa</li>
+        <li>Jumlah siswa hadir hari ini</li>
+        <li>Jumlah siswa terlambat, izin, sakit, alfa, dan belum hadir</li>
+        <li>Persentase kehadiran</li>
+        <li>Grafik tren kehadiran</li>
+        <li>Aktivitas terbaru di sistem</li>
+    </ul>
+
+    <h2>3.2 Menu Kelola Sekolah</h2>
+    <p>Menu ini berisi berbagai fitur untuk mengelola data sekolah:</p>
+
+    <h3>3.2.1 Kelola Jurusan</h3>
+    <p><strong>Fungsi:</strong> Mengelola data jurusan yang ada di sekolah</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Jurusan"</strong></li>
+        <li>Untuk menambah jurusan baru:
+            <ul>
+                <li>Klik tombol <strong>"Tambah Jurusan"</strong></li>
+                <li>Masukkan nama jurusan (contoh: Teknik Komputer dan Jaringan)</li>
+                <li>Klik <strong>"Simpan"</strong></li>
+            </ul>
+        </li>
+        <li>Untuk mengedit jurusan:
+            <ul>
+                <li>Klik tombol <strong>"Edit"</strong> pada jurusan yang ingin diubah</li>
+                <li>Ubah nama jurusan</li>
+                <li>Klik <strong>"Simpan"</strong></li>
+            </ul>
+        </li>
+        <li>Untuk menghapus jurusan:
+            <ul>
+                <li>Klik tombol <strong>"Hapus"</strong></li>
+                <li>Konfirmasi penghapusan</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong> Menghapus jurusan akan menghapus semua kelas dan riwayat kelas yang terkait!
+    </div>
+
+    <h3>3.2.2 Kelola Kelas</h3>
+    <p><strong>Fungsi:</strong> Mengelola data kelas (tingkat, jurusan, paralel)</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Kelas"</strong></li>
+        <li>Untuk menambah kelas baru:
+            <ul>
+                <li>Klik tombol <strong>"Tambah Kelas"</strong></li>
+                <li>Pilih tingkat (X, XI, atau XII)</li>
+                <li>Pilih jurusan</li>
+                <li>Masukkan paralel (1, 2, 3, dll) atau bisa juga dikosongkan</li>
+                <li>Klik <strong>"Simpan"</strong></li>
+            </ul>
+        </li>
+        <li>Untuk mengedit atau menghapus kelas, gunakan tombol yang tersedia</li>
+    </ol>
+
+    <h3>3.2.3 Kelola Wali Kelas</h3>
+    <p><strong>Fungsi:</strong> Menugaskan guru sebagai wali kelas</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Wali Kelas"</strong></li>
+        <li>Untuk menambah wali kelas:
+            <ul>
+                <li>Klik tombol <strong>"Tambah Wali Kelas"</strong></li>
+                <li>Masukkan username dan nama</li>
+                <li>Masukkan username dan password untuk login</li>
+                <li>Pilih kelas yang akan diampu</li>
+                <li>Klik <strong>"Simpan"</strong></li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>3.2.4 Kelola Guru Piket</h3>
+    <p><strong>Fungsi:</strong> Mengelola data guru piket</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Guru Piket"</strong></li>
+        <li>Untuk menambah guru piket:
+            <ul>
+                <li>Klik tombol <strong>"Tambah Guru Piket"</strong></li>
+                <li>Masukkan nama guru</li>
+                <li>Masukkan username dan password</li>
+                <li>Klik <strong>"Simpan"</strong></li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>3.2.5 Jadwal Piket</h3>
+    <p><strong>Fungsi:</strong> Mengatur jadwal piket guru per hari</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Jadwal Piket"</strong></li>
+        <li>Pilih hari yang ingin diatur</li>
+        <li>Pilih guru piket yang bertugas</li>
+        <li>Klik <strong>"Simpan"</strong></li>
+    </ol>
+
+    <h3>3.2.6 Import Data Siswa</h3>
+    <p><strong>Fungsi:</strong> Mengimpor data siswa dalam jumlah banyak menggunakan file Excel</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Import Data Siswa"</strong></li>
+        <li>Download template Excel yang disediakan</li>
+        <li>Isi data siswa sesuai format template:
+            <ul>
+                <li>NIS</li>
+                <li>Nama</li>
+                <li>Kelas ID</li>
+                <li>Username</li>
+                <li>Password</li>
+            </ul>
+        </li>
+        <li>Upload file Excel yang sudah diisi</li>
+        <li>Klik <strong>"Import"</strong></li>
+        <li>Sistem akan memproses dan menampilkan hasil import</li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Pastikan format file Excel sesuai dengan template untuk menghindari error saat import.
+    </div>
+
+    <h3>3.2.7 Kelola Data Siswa</h3>
+    <p><strong>Fungsi:</strong> Mengelola data siswa secara individual</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Kelola Data Siswa"</strong></li>
+        <li>Gunakan fitur pencarian untuk menemukan siswa</li>
+        <li>Untuk menambah siswa baru, klik <strong>"Tambah Siswa"</strong></li>
+        <li>Untuk mengedit data siswa, klik tombol <strong>"Edit"</strong></li>
+        <li>Untuk menghapus siswa, klik tombol <strong>"Hapus"</strong></li>
+    </ol>
+
+    <h3>3.2.8 Riwayat Kelas</h3>
+    <p><strong>Fungsi:</strong> Melihat riwayat perpindahan kelas siswa</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Kelola Sekolah"</strong> → <strong>"Riwayat Kelas"</strong></li>
+        <li>Sistem akan menampilkan daftar riwayat kelas siswa</li>
+        <li>Gunakan filter untuk mencari riwayat tertentu</li>
+    </ol>
+
+    <h2>3.3 Rekap Absensi</h2>
+    <p><strong>Fungsi:</strong> Melihat dan mengekspor rekap absensi</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Rekap"</strong></li>
+        <li>Pilih periode rekap:
+            <ul>
+                <li><strong>Harian:</strong> Rekap per hari</li>
+                <li><strong>Mingguan:</strong> Rekap per minggu</li>
+                <li><strong>Bulanan:</strong> Rekap per bulan</li>
+            </ul>
+        </li>
+        <li>Pilih tanggal yang diinginkan</li>
+        <li>Filter berdasarkan kelas (opsional)</li>
+        <li>Untuk mengekspor:
+            <ul>
+                <li>Klik <strong>"Export Excel"</strong> untuk format Excel</li>
+                <li>Klik <strong>"Export PDF"</strong> untuk format PDF</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Rekap mingguan dan bulanan akan mengagregasi data dari beberapa hari secara otomatis.
+    </div>
+
+    <h2>3.4 Pengaturan Sistem</h2>
+    <p><strong>Fungsi:</strong> Mengatur konfigurasi sistem absensi</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Pengaturan Sistem"</strong></li>
+        <li>Atur lokasi sekolah:
+            <ul>
+                <li>Klik pada peta untuk memilih lokasi</li>
+                <li>Atau gunakan tombol <strong>"Gunakan Lokasi Saat Ini"</strong></li>
+                <li>Atau masukkan koordinat latitude dan longitude secara manual</li>
+            </ul>
+        </li>
+        <li>Atur radius absensi (dalam meter)</li>
+        <li>Atur jam masuk dan jam pulang</li>
+        <li>Atur toleransi keterlambatan (dalam menit)</li>
+        <li>Klik <strong>"Simpan"</strong></li>
+    </ol>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong> Pengaturan ini akan mempengaruhi seluruh sistem absensi. Pastikan koordinat lokasi dan radius sudah benar sebelum menyimpan.
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 4: PANDUAN GURU PIKET -->
+    <h1 id="gurket">4. Panduan untuk Guru Piket</h1>
+
+    <h2>4.1 Dashboard Guru Piket</h2>
+    <p>Dashboard menampilkan statistik absensi hari ini:</p>
+    <ul>
+        <li>Total siswa</li>
+        <li>Jumlah siswa hadir, terlambat, izin, sakit, alfa, dan belum hadir</li>
+        <li>Persentase kehadiran</li>
+        <li>Grafik pie chart kehadiran</li>
+    </ul>
+
+    <h2>4.2 Rencana Absensi</h2>
+    <p><strong>Fungsi:</strong> Membuat rencana absensi untuk hari-hari tertentu (misalnya saat ujian atau kegiatan khusus)</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Absensi"</strong> → <strong>"Rencana Absensi"</strong></li>
+        <li>Klik tombol <strong>"+ Tambah Rencana"</strong></li>
+        <li>Isi form:
+            <ul>
+                <li>Pilih tanggal</li>
+                <li>Pilih kelas</li>
+                <li>Masukkan keterangan (opsional)</li>
+            </ul>
+        </li>
+        <li>Klik <strong>"Simpan"</strong></li>
+    </ol>
+
+   
+
+    <h2>4.3 Absen Hari Ini</h2>
+    <p><strong>Fungsi:</strong> Melihat dan mengelola absensi siswa hari ini</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Absensi"</strong> → <strong>"Absen Hari Ini"</strong></li>
+        <li>Sistem menampilkan daftar siswa yang sudah absen hari ini</li>
+        <li>Gunakan filter untuk menyaring berdasarkan:
+            <ul>
+                <li>Kelas</li>
+                <li>Status (Hadir, Terlambat, Izin, Sakit, Alfa)</li>
+            </ul>
+        </li>
+        <li>Gunakan kolom pencarian untuk mencari siswa berdasarkan NIS atau nama</li>
+    </ol>
+
+    <h3>4.3.1 Mengubah Status Kehadiran Siswa</h3>
+    <p><strong>Fungsi:</strong> Mengoreksi status kehadiran siswa jika terjadi kesalahan atau kecurangan</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Pada tabel absensi, cari siswa yang ingin diubah statusnya</li>
+        <li>Klik dropdown di kolom <strong>"Status"</strong></li>
+        <li>Pilih status baru (Hadir, Terlambat, Izin, Sakit, atau Alfa)</li>
+        <li>Konfirmasi perubahan</li>
+        <li>Status akan langsung diperbarui</li>
+    </ol>
+
+    <h3>4.3.2 Absensi Manual</h3>
+    <p><strong>Fungsi:</strong> Mencatat absensi siswa secara manual (untuk siswa yang tidak bisa absen via aplikasi)</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik tombol <strong>"Absensi Manual"</strong></li>
+        <li>Ketik NIS atau nama siswa di kolom pencarian</li>
+        <li>Pilih siswa dari daftar yang muncul</li>
+        <li>Pilih status kehadiran (Hadir, Izin, Sakit, Terlambat, atau Alfa)</li>
+        <li>Klik <strong>"Simpan Absensi"</strong></li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Fitur absensi manual berguna untuk siswa yang lupa membawa HP atau HP-nya bermasalah.
+    </div>
+
+    <h2>4.4 Izin / Sakit</h2>
+    <p><strong>Fungsi:</strong> Memverifikasi pengajuan izin atau sakit dari siswa</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Absensi"</strong> → <strong>"Izin / Sakit"</strong></li>
+        <li>Sistem menampilkan daftar pengajuan yang perlu diverifikasi</li>
+        <li>Gunakan filter untuk menyaring berdasarkan jenis (Semua, Izin, atau Sakit)</li>
+        <li>Untuk setiap pengajuan, Anda dapat:
+            <ul>
+                <li>Melihat bukti yang dilampirkan (klik pada gambar untuk memperbesar)</li>
+                <li>Membaca keterangan dari siswa</li>
+                <li>Klik <strong>"Tandai Izin"</strong> untuk menyetujui izin</li>
+                <li>Klik <strong>"Tandai Sakit"</strong> untuk menyetujui sakit</li>
+                <li>Klik <strong>"Tolak"</strong> untuk menolak pengajuan (status menjadi Alfa)</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong> Pastikan Anda memeriksa bukti yang dilampirkan sebelum menyetujui atau menolak pengajuan.
+    </div>
+
+    <h2>4.5 Lihat Absensi</h2>
+    <p><strong>Fungsi:</strong> Melihat riwayat absensi siswa dengan filter tanggal dan kelas</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Absensi"</strong> → <strong>"Lihat Absensi"</strong></li>
+        <li>Pilih tanggal yang ingin dilihat</li>
+        <li>Filter berdasarkan kelas (opsional)</li>
+        <li>Filter berdasarkan status (opsional)</li>
+        <li>Sistem akan menampilkan data absensi sesuai filter</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 5: PANDUAN WALI KELAS -->
+    <h1 id="walas">5. Panduan untuk Wali Kelas</h1>
+
+    <h2>5.1 Dashboard Wali Kelas</h2>
+    <p>Dashboard menampilkan statistik absensi kelas yang diampu:</p>
+    <ul>
+        <li>Total siswa di kelas</li>
+        <li>Jumlah siswa hadir, terlambat, izin, sakit, alfa, dan belum hadir hari ini</li>
+        <li>Persentase kehadiran kelas</li>
+        <li>Grafik pie chart kehadiran</li>
+        <li>Informasi kelas yang diampu</li>
+        <li>Daftar siswa hari ini dengan status kehadiran</li>
+    </ul>
+
+    <h2>5.2 Melihat Daftar Siswa Hari Ini</h2>
+    <p><strong>Fungsi:</strong> Memantau kehadiran siswa di kelas yang diampu</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Pada dashboard, scroll ke bagian <strong>"Daftar Siswa Hari Ini"</strong></li>
+        <li>Gunakan tombol filter untuk melihat siswa berdasarkan status:
+            <ul>
+                <li>Hadir</li>
+                <li>Terlambat</li>
+                <li>Izin</li>
+                <li>Sakit</li>
+                <li>Alfa</li>
+                <li>Belum Hadir</li>
+            </ul>
+        </li>
+       
+    </ol>
+
+    <h3>5.2.1 Mengubah Status Kehadiran Siswa</h3>
+    <p><strong>Fungsi:</strong> Wali kelas dapat mengubah status kehadiran siswa di kelasnya</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Pada tabel daftar siswa, cari siswa yang ingin diubah statusnya</li>
+        <li>Klik dropdown di kolom <strong>"Status"</strong></li>
+        <li>Pilih status baru</li>
+        <li>Konfirmasi perubahan</li>
+    </ol>
+
+    <h2>5.3 Rekap Absensi Kelas</h2>
+    <p><strong>Fungsi:</strong> Melihat rekap absensi kelas yang diampu</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Rekap Absensi"</strong></li>
+        <li>Pilih periode rekap (Harian, Mingguan, atau Bulanan)</li>
+        <li>Pilih tanggal</li>
+        <li>Sistem akan menampilkan rekap absensi kelas Anda</li>
+        <li>Anda dapat mengekspor rekap ke Excel atau PDF</li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Gunakan rekap bulanan untuk membuat laporan kehadiran siswa di akhir bulan.
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 6: PANDUAN SISWA -->
+    <h1 id="siswa">6. Panduan untuk Siswa</h1>
+
+    <h2>6.1 Cara Login Siswa</h2>
+    <p><strong>Fungsi:</strong> Masuk ke sistem SATRIA untuk melakukan absensi</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Buka aplikasi SATRIA melalui browser</li>
+        <li>Pada halaman login, masukkan:
+            <ul>
+                <li><strong>Username:</strong> Masukkan <strong>NIS</strong> (Nomor Induk Siswa) Anda</li>
+                <li><strong>Password:</strong> Masukkan <strong>NISN</strong> (Nomor Induk Siswa Nasional) Anda</li>
+            </ul>
+        </li>
+        <li>Klik tombol <strong>"Masuk"</strong></li>
+        <li>Anda akan diarahkan ke halaman home siswa</li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Contoh Login:</strong>
+        <ul>
+            <li>Username: 2024001 (NIS Anda)</li>
+            <li>Password: 0012345678 (NISN Anda)</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong>
+        <ul>
+            <li>Pastikan Anda memasukkan NIS dan NISN dengan benar</li>
+            <li>Jika lupa NIS atau NISN, hubungi wali kelas atau bagian kesiswaan</li>
+            <li>Jangan bagikan username dan password Anda kepada orang lain</li>
+        </ul>
+    </div>
+
+    <h2>6.2 Halaman Home Siswa</h2>
+    <p>Setelah login, siswa akan melihat halaman home yang menampilkan:</p>
+    <ul>
+        <li>Nama siswa dan tanggal hari ini</li>
+        <li>Informasi jam masuk dan jam pulang sekolah</li>
+        <li>Toleransi keterlambatan</li>
+        <li>Menu absensi (Absen Datang, Absen Pulang, Izin/Sakit)</li>
+        <li>Riwayat absensi harian</li>
+    </ul>
+
+    <h2>6.3 Absen Datang</h2>
+    <p><strong>Fungsi:</strong> Mencatat kehadiran saat tiba di sekolah</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Pastikan GPS HP Anda aktif</li>
+        <li>Pastikan Anda berada di area sekolah (dalam radius yang ditentukan)</li>
+        <li>Klik tombol <strong>"Absen Datang"</strong> di halaman home</li>
+        <li>Sistem akan mengambil lokasi GPS Anda (tunggu beberapa saat)</li>
+        <li>Peta akan menampilkan:
+            <ul>
+                <li>Lokasi Anda (ikon orang)</li>
+                <li>Lokasi sekolah (ikon sekolah)</li>
+                <li>Lingkaran radius absensi</li>
+                <li>Garis merah putus-putus menunjukkan jarak Anda ke sekolah</li>
+            </ul>
+        </li>
+        <li>Sistem akan menampilkan informasi jarak Anda dari sekolah</li>
+        <li>Jika Anda berada dalam radius, klik tombol <strong>"Absen Datang"</strong></li>
+        <li>Konfirmasi absensi</li>
+        <li>Sistem akan mencatat waktu kedatangan Anda</li>
+    </ol>
+
+    <div class="success-box">
+        <strong>✅ Status Kehadiran:</strong>
+        <ul>
+            <li><strong>Hadir:</strong> Jika Anda absen sebelum batas jam masuk</li>
+            <li><strong>Terlambat:</strong> Jika Anda absen setelah batas jam masuk + toleransi</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <strong>⚠️ Perhatian:</strong>
+        <ul>
+            <li>Pastikan GPS HP Anda aktif dan akurat</li>
+            <li>Jika lokasi tidak akurat, coba refresh GPS dengan tombol "Refresh GPS"</li>
+            <li>Anda hanya bisa absen jika berada dalam radius sekolah</li>
+            <li>Jika Anda berada di luar radius, sistem akan menampilkan peringatan dan jarak yang harus Anda dekati</li>
+        </ul>
+    </div>
+
+    <h2>6.4 Absen Pulang</h2>
+    <p><strong>Fungsi:</strong> Mencatat waktu pulang dari sekolah</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik tombol <strong>"Absen Pulang"</strong> di halaman home</li>
+        <li>Proses sama seperti absen datang</li>
+        <li>Pastikan Anda masih berada dalam radius sekolah</li>
+        <li>Klik tombol <strong>"Absen Pulang"</strong></li>
+        <li>Konfirmasi absensi</li>
+        <li>Sistem akan mencatat waktu kepulangan Anda</li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong> Anda hanya bisa absen pulang setelah jam pulang yang ditentukan sekolah.
+    </div>
+
+    <h2>6.5 Pengajuan Izin / Sakit</h2>
+    <p><strong>Fungsi:</strong> Mengajukan izin atau sakit jika tidak bisa hadir ke sekolah</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik tombol <strong>"Izin / Sakit"</strong> di halaman home</li>
+        <li>Pilih jenis pengajuan:
+            <ul>
+                <li><strong>Izin:</strong> Untuk keperluan pribadi/keluarga</li>
+                <li><strong>Sakit:</strong> Untuk kondisi sakit</li>
+            </ul>
+        </li>
+        <li>Tanggal akan otomatis terisi dengan hari ini</li>
+        <li>Masukkan alasan/keterangan (minimal 10 karakter)</li>
+        <li>Upload bukti (opsional):
+            <ul>
+                <li>Untuk izin: surat izin, undangan, dll</li>
+                <li>Untuk sakit: surat dokter, foto obat, dll</li>
+                <li>Format: JPG, PNG, atau PDF (maksimal 5MB)</li>
+            </ul>
+        </li>
+        <li>Klik <strong>"Kirim Pengajuan"</strong></li>
+        <li>Tunggu verifikasi dari guru piket</li>
+    </ol>
+
+    <div class="info-box">
+        <strong>💡 Tips:</strong>
+        <ul>
+            <li>Ajukan izin/sakit sedini mungkin</li>
+            <li>Sertakan bukti yang jelas untuk mempercepat verifikasi</li>
+            <li>Tulis keterangan dengan lengkap dan jelas</li>
+        </ul>
+    </div>
+
+    <h2>6.6 Riwayat Absensi</h2>
+    <p><strong>Fungsi:</strong> Melihat riwayat absensi Anda</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Riwayat"</strong> di bottom navigation</li>
+        <li>Sistem akan menampilkan riwayat absensi Anda</li>
+        <li>Anda dapat melihat:
+            <ul>
+                <li>Tanggal absensi</li>
+                <li>Status kehadiran</li>
+                <li>Jam datang</li>
+                <li>Jam pulang</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>6.7 Profil</h2>
+    <p><strong>Fungsi:</strong> Melihat dan mengedit profil Anda</p>
+    <p><strong>Cara Menggunakan:</strong></p>
+    <ol>
+        <li>Klik menu <strong>"Profil"</strong> di bottom navigation</li>
+        <li>Anda dapat melihat informasi:
+            <ul>
+                <li>Nama</li>
+                <li>NIS</li>
+                <li>Kelas</li>
+                <li>Username</li>
+            </ul>
+        </li>
+        <li>Untuk mengubah password silahkan hubungi kesiswaan</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <!-- BAB 7: FAQ -->
+    <h1 id="faq">7. FAQ dan Troubleshooting</h1>
+
+    <h2>7.1 Pertanyaan Umum</h2>
+
+    <h3>Q: Bagaimana jika saya lupa password?</h3>
+    <p><strong>A:</strong> Hubungi admin sekolah untuk melakukan reset password. Admin dapat mengatur password baru untuk akun Anda.</p>
+
+    <h3>Q: Kenapa saya tidak bisa absen padahal sudah di sekolah?</h3>
+    <p><strong>A:</strong> Beberapa kemungkinan penyebab:
+    <ul>
+        <li>GPS HP Anda tidak aktif - Aktifkan GPS di pengaturan HP</li>
+        <li>Lokasi GPS tidak akurat - Coba refresh GPS atau tunggu beberapa saat</li>
+        <li>Anda berada di luar radius sekolah - Pastikan Anda berada dalam area yang ditentukan</li>
+        <li>Browser tidak mendapat izin akses lokasi - Izinkan akses lokasi di browser</li>
+    </ul>
+    </p>
+
+    <h3>Q: Apakah saya bisa absen menggunakan laptop/PC?</h3>
+    <p><strong>A:</strong> Bisa, tetapi tidak disarankan karena laptop/PC biasanya tidak memiliki GPS yang akurat. Gunakan smartphone untuk hasil terbaik.</p>
+
+    <h3>Q: Bagaimana jika HP saya rusak/hilang saat harus absen?</h3>
+    <p><strong>A:</strong> Lapor ke guru piket yang bertugas. Guru piket dapat melakukan absensi manual untuk Anda.</p>
+
+    <h3>Q: Berapa lama waktu yang dibutuhkan untuk verifikasi izin/sakit?</h3>
+    <p><strong>A:</strong> Verifikasi dilakukan oleh guru piket yang bertugas pada hari itu. Biasanya diproses dalam 1-2 jam kerja.</p>
+
+    <h3>Q: Apakah saya bisa mengubah data absensi yang sudah tercatat?</h3>
+    <p><strong>A:</strong> Tidak. Siswa tidak bisa mengubah data absensi. Jika ada kesalahan, hubungi guru piket atau wali kelas Anda.</p>
+
+    <h3>Q: Bagaimana cara melihat rekap absensi bulanan saya?</h3>
+    <p><strong>A:</strong> Klik menu "Riwayat" di aplikasi. Anda dapat melihat semua riwayat absensi Anda di sana.</p>
+
+    <h2>7.2 Troubleshooting</h2>
+
+    <h3>Masalah: GPS tidak bisa mengambil lokasi</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Pastikan GPS HP Anda aktif (cek di Settings → Location)</li>
+        <li>Pastikan browser mendapat izin akses lokasi:
+            <ul>
+                <li>Chrome: Klik ikon gembok di address bar → Site settings → Location → Allow</li>
+                <li>Firefox: Klik ikon (i) di address bar → Permissions → Location → Allow</li>
+            </ul>
+        </li>
+        <li>Coba refresh halaman</li>
+        <li>Jika masih gagal, coba gunakan browser lain</li>
+        <li>Pastikan Anda mengakses via HTTPS (bukan HTTP)</li>
+    </ol>
+
+    <h3>Masalah: Lokasi GPS tidak akurat</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Keluar dari gedung dan coba di area terbuka</li>
+        <li>Tunggu beberapa saat agar GPS mendapat sinyal yang lebih baik</li>
+        <li>Klik tombol "Refresh GPS" untuk memperbarui lokasi</li>
+        <li>Restart HP Anda</li>
+        <li>Pastikan mode lokasi di HP diset ke "High Accuracy"</li>
+    </ol>
+
+    <h3>Masalah: Tombol absen tidak bisa diklik</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Pastikan Anda berada dalam radius sekolah</li>
+        <li>Pastikan GPS sudah berhasil mengambil lokasi Anda</li>
+        <li>Cek apakah Anda sudah absen hari ini (tidak bisa absen datang 2x dalam sehari)</li>
+        <li>Refresh halaman dan coba lagi</li>
+    </ol>
+
+    <h3>Masalah: Upload bukti izin/sakit gagal</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Pastikan ukuran file tidak lebih dari 5MB</li>
+        <li>Pastikan format file adalah JPG, PNG, atau PDF</li>
+        <li>Coba kompres gambar terlebih dahulu jika terlalu besar</li>
+        <li>Pastikan koneksi internet stabil</li>
+    </ol>
+
+    <h3>Masalah: Tidak bisa login</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Pastikan username dan password benar (perhatikan huruf besar/kecil)</li>
+        <li>Pastikan tidak ada spasi di awal atau akhir username/password</li>
+        <li>Coba refresh halaman</li>
+        <li>Clear cache dan cookies browser</li>
+        <li>Jika masih gagal, hubungi admin untuk reset password</li>
+    </ol>
+
+    <h3>Masalah: Halaman tidak muncul dengan benar</h3>
+    <p><strong>Solusi:</strong></p>
+    <ol>
+        <li>Clear cache browser (Ctrl+Shift+Delete)</li>
+        <li>Refresh halaman (Ctrl+R atau F5)</li>
+        <li>Coba gunakan browser lain (Chrome, Firefox, Edge)</li>
+        <li>Pastikan browser Anda versi terbaru</li>
+    </ol>
+
+    <h2>7.3 Tips Penggunaan</h2>
+    <div class="success-box">
+        <h4>Untuk Siswa:</h4>
+        <ul>
+            <li>Selalu aktifkan GPS sebelum berangkat ke sekolah</li>
+            <li>Absen segera setelah tiba di sekolah</li>
+            <li>Jangan lupa absen pulang sebelum meninggalkan sekolah</li>
+            <li>Ajukan izin/sakit sedini mungkin jika tidak bisa hadir</li>
+            <li>Simpan bukti izin/sakit dalam format digital untuk memudahkan upload</li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h4>Untuk Guru Piket:</h4>
+        <ul>
+            <li>Cek daftar pengajuan izin/sakit secara berkala</li>
+            <li>Verifikasi bukti yang dilampirkan sebelum menyetujui</li>
+            <li>Gunakan fitur absensi manual untuk siswa yang bermasalah dengan HP</li>
+            <li>Monitor daftar siswa yang belum hadir untuk tindak lanjut</li>
+            <li>Gunakan filter untuk mempermudah pencarian data</li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h4>Untuk Wali Kelas:</h4>
+        <ul>
+            <li>Pantau kehadiran siswa di kelas Anda setiap hari</li>
+            <li>Hubungi siswa yang sering tidak hadir atau terlambat</li>
+            <li>Buat rekap bulanan untuk laporan ke orang tua</li>
+            <li>Koordinasi dengan guru piket jika ada masalah absensi</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <h4>Untuk Admin:</h4>
+        <ul>
+            <li>Backup data secara berkala</li>
+            <li>Pastikan pengaturan lokasi dan radius sudah benar</li>
+            <li>Monitor aktivitas sistem secara rutin</li>
+            <li>Update data siswa dan kelas setiap awal tahun ajaran</li>
+            <li>Berikan pelatihan kepada pengguna baru</li>
+        </ul>
+    </div>
+
+    <h2>7.4 Kontak Bantuan</h2>
+    <p>Jika Anda mengalami masalah yang tidak dapat diselesaikan dengan panduan ini, silakan hubungi:</p>
+    <table>
+        <tr>
+            <th>Jenis Masalah</th>
+            <th>Hubungi</th>
+        </tr>
+        <tr>
+            <td>Lupa password / Masalah akun</td>
+            <td>Admin Sekolah</td>
+        </tr>
+        <tr>
+            <td>Masalah absensi harian</td>
+            <td>Guru Piket yang bertugas</td>
+        </tr>
+        <tr>
+            <td>Masalah rekap kelas</td>
+            <td>Wali Kelas</td>
+        </tr>
+        <tr>
+            <td>Masalah teknis sistem</td>
+            <td>Admin IT / Developer</td>
+        </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- PENUTUP -->
+    <h1 id="penutup">Penutup</h1>
+    <p>
+        Panduan ini disusun untuk membantu seluruh pengguna SATRIA (Sistem Absensi Trimulia Jakarta) 
+        dalam menggunakan aplikasi dengan optimal. Sistem ini dirancang untuk mempermudah proses 
+        absensi dan monitoring kehadiran siswa di SMK Trimulia Jakarta.
+    </p>
+
+    <p>
+        Dengan menggunakan teknologi GPS dan sistem berbasis web, SATRIA memberikan kemudahan, 
+        transparansi, dan akurasi dalam pencatatan kehadiran siswa. Semua data tersimpan dengan 
+        aman dan dapat diakses kapan saja untuk keperluan monitoring dan pelaporan.
+    </p>
+
+
+
+    <p style="margin-top: 40px; text-align: center; color: #666;">
+        <strong>SMK Trimulia Jakarta</strong><br>
+        Sistem Absensi Trimulia Jakarta (SATRIA)<br>
+        Versi 1.0 - <span id="footerYear"></span>
+    </p>
+
+    <div style="margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 8px; text-align: center;">
+        <p style="margin: 0; font-size: 12pt; color: #666;">
+            <em>Panduan ini dapat diperbarui sesuai dengan perkembangan sistem.<br>
+            Untuk informasi terbaru, silakan hubungi admin sekolah.</em>
+        </p>
+    </div>
+
+</body>
+</html>
